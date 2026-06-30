@@ -2,19 +2,57 @@
 
 ## Your domains
 
-| Domain | Use |
-|--------|-----|
-| `https://lifepool-e17s.ipfs.4everland.app` | **Primary** — set `VITE_APP_URL` to this |
-| `https://lifepool-gbudx64a-laszlo23.ipfs.4everland.app` | Per-deployment mirror (same build, auto-assigned) |
+| Domain | Role |
+|--------|------|
+| `https://lifepool-e17s.ipfs.4everland.app` | Primary project URL |
+| `https://lifepool-lmexdg6w-laszlo23.ipfs.4everland.app` | Latest deployment mirror |
 
-Both URLs are issued automatically by 4EVERLAND. You do not DNS-configure `*.ipfs.4everland.app` — they are ready once a deploy succeeds.
+A **404** on these URLs almost always means the build failed or nothing was pinned to IPFS yet — not a DNS problem.
 
-## Assign primary domain + env vars
+---
 
-1. Open [4EVERLAND Hosting](https://dashboard.4everland.org/hosting) → **lifepool** project.
-2. **Settings → Environment Variables** — add or update:
+## Recommended: GitHub Actions deploy (Node 20)
 
-```
+4EVERLAND’s built-in builder often runs **Node 14**, which cannot build Vite 8. Use GitHub Actions instead:
+
+### 1. Get an auth token
+
+1. [4EVERLAND Dashboard](https://dashboard.4everland.org) → connect wallet  
+2. **Hosting → Auth Tokens** → create token  
+
+### 2. Add GitHub secret
+
+Repo → **Settings → Secrets and variables → Actions → New secret**
+
+| Name | Value |
+|------|-------|
+| `EVER_TOKEN` | your 4EVERLAND auth token |
+
+### 3. Push to `main`
+
+Workflow [`.github/workflows/deploy-4everland.yml`](../.github/workflows/deploy-4everland.yml) will:
+
+1. Build on **Node 20** with production `VITE_*` env vars  
+2. Pin `./dist` to your **lifepool** project via `4everland/pin-action`  
+3. Update the live IPFS deployment  
+
+Check **Actions** tab on GitHub for build logs and the IPFS link.
+
+---
+
+## Alternative: 4EVERLAND dashboard build
+
+If you prefer git-triggered builds inside 4EVERLAND:
+
+| Setting | Value |
+|---------|-------|
+| Build command | `bash scripts/hosting-build.sh` |
+| Output directory | `dist` |
+| Framework | Vite (or Other) |
+
+**Environment variables (required):**
+
+```env
 NODE_VERSION=20
 VITE_CHAIN_ID=84532
 VITE_BASE_SEPOLIA_RPC_URL=https://sepolia.base.org
@@ -22,27 +60,32 @@ VITE_APP_URL=https://lifepool-e17s.ipfs.4everland.app
 VITE_B3OS_OPERATOR_ADDRESS=0xaaf620ee9e2a805323BF7363992E33e4412be3FB
 ```
 
-> **Node 20+ required.** The default 4EVERLAND builder uses Node 14, which cannot run Vite 8. Setting `NODE_VERSION=20` (or `22`) fixes failed builds. The repo also ships `.nvmrc` and `package.json` `engines` for the same reason.
+If `NODE_VERSION=20` is missing, the build script exits immediately with a clear error instead of obscure Vite/Rolldown failures.
 
-3. **Settings → General** — confirm build:
-   - Build command: `npm install && npm run build`
-   - Output directory: `dist`
-4. **Deployments** → **Redeploy** latest (or push to `main` on GitHub for auto-deploy).
-5. **Settings → Domains** — the primary `lifepool-e17s…` URL should show as the production domain. The `lifepool-gbudx64a-laszlo23…` URL is tied to a specific deployment hash and updates each release.
+---
 
-## Custom domain (optional)
+## After a successful deploy
 
-To use your own domain (e.g. `lifepool.xyz`):
+- App: https://lifepool-e17s.ipfs.4everland.app  
+- Deck: https://lifepool-e17s.ipfs.4everland.app/deck/  
+- Verify on IPFS link in the 4EVERLAND deployment detail page  
 
-1. Project → **Settings → Domains → Add Custom Domain**
-2. Add the CNAME/TXT records 4EVERLAND shows at your DNS provider
-3. After verification, set `VITE_APP_URL=https://yourdomain.com` and redeploy
+`dist/ipfs-404.html` is generated at build time for IPFS gateway 404 fallback.
 
-## Investor links
+---
 
-- App: https://lifepool-e17s.ipfs.4everland.app
-- Deck: https://lifepool-e17s.ipfs.4everland.app/deck/
+## Troubleshooting
 
-## Limitations on IPFS static hosting
+| Symptom | Fix |
+|---------|-----|
+| Build log shows Node 14 | Set `NODE_VERSION=20` or use GitHub Actions deploy |
+| `Cannot find name 'process'` | Pull latest `main` (fixed in `src/lib/env.ts`) |
+| Site 404, build “success” | Wrong output dir — must be `dist`, not `/` |
+| Pin action fails | Add `EVER_TOKEN` secret; project name must be `lifepool` |
+| `eth_getLogs` errors in app | Use Alchemy/Infura RPC in `VITE_BASE_SEPOLIA_RPC_URL` |
 
-`/api/*` routes (Farcaster Frame webhook, dynamic OG image) do not run on static IPFS deploys. The wallet app, faucet, mint, pool, and treasury UI work fully via Base Sepolia RPC.
+---
+
+## Limitations
+
+`/api/*` serverless routes (Farcaster Frame, dynamic OG) do not run on static IPFS. The wallet app, faucet, mint, pool, and treasury UI work via Base Sepolia RPC.

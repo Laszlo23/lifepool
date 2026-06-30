@@ -1,0 +1,61 @@
+name: Deploy to 4EVERLAND
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-4everland
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+        env:
+          VITE_CHAIN_ID: "84532"
+          VITE_BASE_SEPOLIA_RPC_URL: https://sepolia.base.org
+          VITE_APP_URL: https://lifepool-e17s.ipfs.4everland.app
+          VITE_B3OS_OPERATOR_ADDRESS: "0xaaf620ee9e2a805323BF7363992E33e4412be3FB"
+
+      - run: bash scripts/postbuild-hosting.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Pin dist to 4EVERLAND IPFS
+        id: pin
+        uses: 4everland/pin-action@v1.0
+        with:
+          EVER_TOKEN: ${{ secrets.EVER_TOKEN }}
+          EVER_PROJECT_NAME: lifepool
+          BUILD_LOCATION: ./dist
+
+      - name: Print deployment links
+        run: |
+          echo "IPFS: ${{ steps.pin.outputs.uri }}"
+          echo "Project: ${{ steps.pin.outputs.projLink }}"

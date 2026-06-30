@@ -137,24 +137,21 @@ npm run keeper:all       # run all keepers once
 
 ## Deploy on 4EVERLAND
 
+**Recommended:** GitHub Actions builds on Node 20 and pins `dist` to IPFS (4EVERLAND’s builder often uses Node 14 and breaks Vite 8).
+
+1. 4EVERLAND Dashboard → **Hosting → Auth Tokens** → create token  
+2. GitHub repo → **Settings → Secrets → Actions** → add `EVER_TOKEN`  
+3. Push to `main` — workflow [`.github/workflows/deploy-4everland.yml`](./.github/workflows/deploy-4everland.yml) deploys automatically  
+
+**Dashboard fallback** (if you skip Actions):
+
 | Setting | Value |
 |---------|-------|
-| Framework | Vite |
-| Build command | `npm install && npm run build` |
+| Build command | `bash scripts/hosting-build.sh` |
 | Output directory | `dist` |
-| Node | **20+** (set `NODE_VERSION=20`) |
+| Node | `NODE_VERSION=20` in env vars |
 
-**Environment variables:**
-
-```env
-NODE_VERSION=20
-VITE_CHAIN_ID=84532
-VITE_BASE_SEPOLIA_RPC_URL=https://sepolia.base.org
-VITE_APP_URL=https://lifepool-e17s.ipfs.4everland.app
-VITE_B3OS_OPERATOR_ADDRESS=0xaaf620ee9e2a805323BF7363992E33e4412be3FB
-```
-
-See [docs/4EVERLAND.md](./docs/4EVERLAND.md) and [docs/INVESTOR_DEMO.md](./docs/INVESTOR_DEMO.md) for full deployment and demo guides.
+Full guide: [docs/4EVERLAND.md](./docs/4EVERLAND.md)
 
 ---
 
