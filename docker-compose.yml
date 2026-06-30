@@ -1,0 +1,24 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_CHAIN_ID: ${VITE_CHAIN_ID:-84532}
+        VITE_BASE_SEPOLIA_RPC_URL: ${VITE_BASE_SEPOLIA_RPC_URL:-https://sepolia.base.org}
+        VITE_APP_URL: ${VITE_APP_URL:-http://localhost:8080}
+        VITE_B3OS_OPERATOR_ADDRESS: ${VITE_B3OS_OPERATOR_ADDRESS:-0xaaf620ee9e2a805323BF7363992E33e4412be3FB}
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    restart: unless-stopped
+
+  keepers:
+    build:
+      context: .
+      dockerfile: Dockerfile.keepers
+    env_file:
+      - .env
+    environment:
+      KEEPER_INTERVAL_SEC: ${KEEPER_INTERVAL_SEC:-14400}
+      EUR_USD_RATE: ${EUR_USD_RATE:-0.92}
+    restart: unless-stopped
