@@ -1,0 +1,17 @@
+{
+  "chainId": 84532,
+  "network": "base-sepolia",
+  "deployedAt": "2026-06-30T15:16:50Z",
+  "contracts": {
+    "LifeEUR": "0x42355c509743a92EBD6F2F7259D4f677Eca18b4d",
+    "MockOracle": "0xd323e5b266FA7A13C9c572ad5c7b7f996846EFc0",
+    "tUSDC": "0xAAE3Eb068026cab39A841c2628F983C559AD6C10",
+    "tWBTC": "0x77fBFbFA3d98f6Cc48249C1050127f15aC7D0DAa",
+    "tXRP": "0x2dB46F644703536B2280c9F0B03989c19a69497B",
+    "CollateralVault": "0xfe9B0a7F2D7ec12865aD772Bf19F86d7A5a15D6C",
+    "LifePoolVault": "0x7DE24AB7CB9b2F88669aFDBDe38Af81bf0B00374",
+    "TreasuryVault": "0xF2a9Bea846D5a6b7b974146441CB06b3D3ba9dc2",
+    "RewardDistributor": "0x5f774c73EbcD9cB9De4341E20C1810ad9E5aa101",
+    "LifePoolFaucet": "0xDbb8dDcf2c9b03A1d64B2284C0Aa0971FBB7ce2E"
+  }
+}

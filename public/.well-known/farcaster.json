@@ -1,0 +1,18 @@
+{
+  "accountAssociation": {
+    "header": "PLACEHOLDER_HEADER",
+    "payload": "PLACEHOLDER_PAYLOAD",
+    "signature": "PLACEHOLDER_SIGNATURE"
+  },
+  "frame": {
+    "version": "1",
+    "name": "LifePool",
+    "iconUrl": "https://lifepool.app/favicon.svg",
+    "homeUrl": "https://lifepool.app",
+    "imageUrl": "https://lifepool.app/api/og",
+    "buttonTitle": "Open LifePool",
+    "splashImageUrl": "https://lifepool.app/favicon.svg",
+    "splashBackgroundColor": "#0a0a0f",
+    "webhookUrl": "https://lifepool.app/api/frame"
+  }
+}

@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LifePool — Investor Deck</title>
+  <style>
+    :root {
+      --void: #0a0b0d;
+      --card: #12141a;
+      --border: #1e2229;
+      --text: #f0f2f5;
+      --muted: #8b929e;
+      --neon: #00e5a0;
+      --neon-dim: #00e5a033;
+      --accent: #6366f1;
+      --gold: #fbbf24;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--void);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    .deck {
+      height: 100vh;
+      position: relative;
+    }
+
+    .slide {
+      display: none;
+      height: 100vh;
+      padding: 48px 64px 80px;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide.active { display: flex; }
+
+    .slide::before {
+      content: "";
+      position: absolute;
+      top: -20%;
+      right: -10%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, var(--neon-dim) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--neon);
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: clamp(36px, 5vw, 64px);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      max-width: 900px;
+    }
+
+    h1 .highlight { color: var(--neon); }
+
+    h2 {
+      font-size: clamp(28px, 3.5vw, 44px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 24px;
+    }
+
+    .subtitle {
+      font-size: 20px;
+      color: var(--muted);
+      max-width: 640px;
+      line-height: 1.5;
+      margin-top: 20px;
+    }
+
+    .stats-row {
+      display: flex;
+      gap: 40px;
+      margin-top: 48px;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      min-width: 140px;
+    }
+
+    .stat-value {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--neon);
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      width: 100%;
+      max-width: 1100px;
+      margin-top: 32px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+    }
+
+    .card h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .card p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .card .num {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--neon);
+      margin-bottom: 8px;
+    }
+
+    .screenshot {
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      max-height: 520px;
+      width: auto;
+      max-width: 100%;
+      object-fit: contain;
+      box-shadow: 0 24px 80px rgba(0, 229, 160, 0.08);
+    }
+
+    .screenshot-sm {
+      max-height: 380px;
+    }
+
+    .screenshot-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 24px;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .screenshot-grid img {
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      width: 100%;
+      height: 280px;
+      object-fit: cover;
+      object-position: top;
+    }
+
+    .screenshot-grid .caption {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    ul.bullets {
+      list-style: none;
+      margin-top: 24px;
+    }
+
+    ul.bullets li {
+      padding: 12px 0;
+      padding-left: 24px;
+      position: relative;
+      font-size: 17px;
+      line-height: 1.4;
+      border-bottom: 1px solid var(--border);
+    }
+
+    ul.bullets li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 18px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--neon);
+    }
+
+    .cycle-flow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 40px;
+      flex-wrap: wrap;
+      max-width: 1000px;
+    }
+
+    .cycle-step {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 24px;
+      text-align: center;
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .cycle-step .step-num {
+      font-size: 11px;
+      color: var(--neon);
+      font-weight: 600;
+      letter-spacing: 0.1em;
+    }
+
+    .cycle-step .step-label {
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    .cycle-step .step-detail {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .cycle-arrow {
+      color: var(--neon);
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .tier-table {
+      width: 100%;
+      max-width: 700px;
+      margin-top: 32px;
+      border-collapse: collapse;
+    }
+
+    .tier-table th, .tier-table td {
+      padding: 16px 20px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tier-table th {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    .tier-table td { font-size: 16px; }
+    .tier-table .price { color: var(--neon); font-weight: 700; font-size: 20px; }
+    .tier-table .popular { background: var(--neon-dim); }
+
+    .nav {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 10px 24px;
+      z-index: 100;
+    }
+
+    .nav button {
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px 12px;
+      border-radius: 8px;
+    }
+
+    .nav button:hover { background: var(--border); }
+
+    .nav .counter {
+      font-size: 13px;
+      color: var(--muted);
+      min-width: 60px;
+      text-align: center;
+    }
+
+    .logo-mark {
+      position: fixed;
+      top: 28px;
+      left: 48px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 15px;
+      z-index: 100;
+    }
+
+    .logo-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 10px;
+      background: var(--neon-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-dot svg circle { stroke: var(--neon); fill: var(--neon); }
+
+    .cta-box {
+      margin-top: 40px;
+      padding: 32px 40px;
+      background: linear-gradient(135deg, var(--neon-dim), transparent);
+      border: 1px solid var(--neon);
+      border-radius: 24px;
+      max-width: 700px;
+    }
+
+    .cta-box h3 { font-size: 24px; margin-bottom: 8px; }
+    .cta-box p { color: var(--muted); font-size: 16px; }
+
+    .footnote {
+      position: absolute;
+      bottom: 80px;
+      left: 64px;
+      font-size: 11px;
+      color: var(--muted);
+      max-width: 600px;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="logo-mark">
+  <div class="logo-dot">
+    <svg width="14" height="14" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7" stroke-width="1.5"/><circle cx="9" cy="9" r="3"/></svg>
+  </div>
+  LifePool
+</div>
+
+<div class="deck" id="deck">
+
+  <!-- SLIDE 1: HOOK -->
+  <section class="slide active">
+    <p class="eyebrow">Investor Deck · June 2026</p>
+    <h1>Your premium shouldn't sit idle.<br><span class="highlight">It should compound.</span></h1>
+    <p class="subtitle">LifePool is programmable life protection — a mutual pool where monthly USDC premiums earn yield through BTC/USDC grid trading and native BTC staking, locked in 4-year cycles that fund ongoing growth.</p>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-value">$48.2M</div><div class="stat-label">Pool capital</div></div>
+      <div class="stat"><div class="stat-value">14.2%</div><div class="stat-label">Blended APY</div></div>
+      <div class="stat"><div class="stat-value">12,847</div><div class="stat-label">Active members</div></div>
+      <div class="stat"><div class="stat-value">81%</div><div class="stat-label">Grid win rate</div></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 2: PROBLEM -->
+  <section class="slide">
+    <p class="eyebrow">The problem</p>
+    <h2>$1.4 trillion in premiums.<br>Most of it earns nothing.</h2>
+    <ul class="bullets">
+      <li>Traditional life insurance collects premiums and parks capital in low-yield bonds — members never see returns</li>
+      <li>Claims take months of paperwork; payouts are opaque and adversarial</li>
+      <li>Younger, crypto-native households are completely underserved — no product speaks their language</li>
+      <li>Premium dollars are the largest recurring payment most families make — and the least productive</li>
+    </ul>
+  </section>
+
+  <!-- SLIDE 3: SOLUTION -->
+  <section class="slide">
+    <div class="grid-2">
+      <div>
+        <p class="eyebrow">The solution</p>
+        <h2>Protection that <span class="highlight">pays you back</span></h2>
+        <p class="subtitle">LifePool flips the insurance model: members join a transparent mutual pool, pay monthly USDC premiums, and their capital works 24/7 in a dual-sleeve yield engine while maintaining coverage.</p>
+        <div class="stats-row">
+          <div class="stat"><div class="stat-value">60s</div><div class="stat-label">Onboarding</div></div>
+          <div class="stat"><div class="stat-value">142%</div><div class="stat-label">Solvency ratio</div></div>
+        </div>
+      </div>
+      <div>
+        <img src="assets/showcase-hero.png" alt="LifePool landing" class="screenshot screenshot-sm" />
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 4: CYCLE FUNDING -->
+  <section class="slide">
+    <p class="eyebrow">The flywheel</p>
+    <h2>Cycle funding: <span class="highlight">4y · 4m · 4d</span></h2>
+    <p class="subtitle">Every member commits to a full cycle. Premiums flow in monthly. Capital deploys, compounds, and stays locked — creating predictable AUM, lower churn, and compounding yield for the entire pool.</p>
+    <div class="cycle-flow">
+      <div class="cycle-step"><div class="step-num">01</div><div class="step-label">Join</div><div class="step-detail">$39–$169/mo USDC</div></div>
+      <div class="cycle-arrow">→</div>
+      <div class="cycle-step"><div class="step-num">02</div><div class="step-label">Deploy</div><div class="step-detail">68% grid · 32% stake</div></div>
+      <div class="cycle-arrow">→</div>
+      <div class="cycle-step"><div class="step-num">03</div><div class="step-label">Lock</div><div class="step-detail">4y · 4m · 4d</div></div>
+      <div class="cycle-arrow">→</div>
+      <div class="cycle-step"><div class="step-num">04</div><div class="step-label">Compound</div><div class="step-detail">Daily harvest</div></div>
+      <div class="cycle-arrow">→</div>
+      <div class="cycle-step"><div class="step-num">05</div><div class="step-label">Renew</div><div class="step-detail">Next cycle begins</div></div>
+    </div>
+    <p class="footnote" style="position:relative;bottom:auto;left:auto;margin-top:32px;">Cycle Keeper agent enforces lock — no early exits. DCA on schedule. 1,584-day commitment per member per cycle.</p>
+  </section>
+
+  <!-- SLIDE 5: REVENUE -->
+  <section class="slide">
+    <p class="eyebrow">Revenue model</p>
+    <h2>Recurring premiums. <span class="highlight">Locked capital.</span></h2>
+    <table class="tier-table">
+      <thead><tr><th>Tier</th><th>Coverage</th><th>Monthly premium</th><th>Annual LTV</th></tr></thead>
+      <tbody>
+        <tr><td>Essential</td><td>$100,000</td><td class="price">$39</td><td>$468/yr</td></tr>
+        <tr class="popular"><td>Standard ★</td><td>$250,000</td><td class="price">$89</td><td>$1,068/yr</td></tr>
+        <tr><td>Premium</td><td>$500,000</td><td class="price">$169</td><td>$2,028/yr</td></tr>
+      </tbody>
+    </table>
+    <div class="grid-3" style="margin-top:40px;">
+      <div class="card"><div class="num">$1.14M</div><h3>Monthly recurring</h3><p>At current 12,847 members (avg $89/mo)</p></div>
+      <div class="card"><div class="num">$312K</div><h3>Expected LTV</h3><p>Per member over full cycle lifetime</p></div>
+      <div class="card"><div class="num">0.5%</div><h3>Mint fee</h3><p>On LIFEUR collateral minting + reward pool</p></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 6: YIELD ENGINE -->
+  <section class="slide">
+    <div class="grid-2">
+      <div>
+        <p class="eyebrow">Yield engine</p>
+        <h2>Two sleeves. <span class="highlight">One winner.</span></h2>
+        <div class="grid-3" style="grid-template-columns:1fr 1fr; margin-top:24px;">
+          <div class="card"><div class="num">22.8%</div><h3>BTC/USDC Grid</h3><p>68% allocation · 24 levels · 186 swings/30d · 81% win rate</p></div>
+          <div class="card"><div class="num">8.4%</div><h3>BTC Staking</h3><p>32% allocation · native validators · auto-compound</p></div>
+        </div>
+        <p class="subtitle" style="margin-top:24px;">Agent fleet runs 24/7: Grid Trader (1,847 actions/day), Cycle Keeper, Stake Validator. 99.9% uptime.</p>
+      </div>
+      <div>
+        <img src="assets/yield-engine.png" alt="Yield Engine" class="screenshot" />
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 7: PRODUCT -->
+  <section class="slide">
+    <p class="eyebrow">Product</p>
+    <h2>Built. Shipped. <span class="highlight">Live on testnet.</span></h2>
+    <div class="screenshot-grid">
+      <div><img src="assets/dashboard.png" alt="Dashboard" /><div class="caption">Dashboard · Live engine</div></div>
+      <div><img src="assets/live-flow.png" alt="Live Flow" /><div class="caption">Live Flow · ROI tracking</div></div>
+      <div><img src="assets/market-intel.png" alt="Move Now" /><div class="caption">Move Now · Market intel</div></div>
+    </div>
+    <p class="footnote" style="position:relative;bottom:auto;left:auto;margin-top:20px;">React 19 mobile app · wagmi + viem on Base Sepolia · Foundry smart contracts deployed · 6 years Binance OHLCV backtest data</p>
+  </section>
+
+  <!-- SLIDE 8: MOAT -->
+  <section class="slide">
+    <p class="eyebrow">Why we win</p>
+    <h2>Four moats. <span class="highlight">One cycle.</span></h2>
+    <div class="grid-3">
+      <div class="card"><h3>No black box</h3><p>Every dollar in, out, and earning yield is visible onchain. Full transparency builds trust at scale.</p></div>
+      <div class="card"><h3>No idle premium</h3><p>Pool capital earns 14.2% blended APY while members stay protected. Premiums work, not sleep.</p></div>
+      <div class="card"><h3>No slow claims</h3><p>Parametric settlement — verified triggers execute payouts automatically. No paperwork, no delays.</p></div>
+      <div class="card"><h3>Cycle lock</h3><p>4y·4m·4d minimum commitment creates predictable AUM, compounds yield, and eliminates redemption risk.</p></div>
+      <div class="card"><h3>Bear alpha</h3><p>6 years of OHLCV data powers Move Now — DCA multipliers up to 2× in accumulation zones. 76% win rate on signals.</p></div>
+      <div class="card"><h3>Shared upside</h3><p>All participants benefit from pooled capital efficiency. Pro-rata yield by contribution. Mutual, not adversarial.</p></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 9: GROWTH -->
+  <section class="slide">
+    <p class="eyebrow">Growth trajectory</p>
+    <h2>Pool capital growing <span class="highlight">every month</span></h2>
+    <div class="grid-2">
+      <div>
+        <div class="stats-row">
+          <div class="stat"><div class="stat-value">$41.2M</div><div class="stat-label">Jan 2026</div></div>
+          <div class="stat"><div class="stat-value">$48.2M</div><div class="stat-label">Jul 2026</div></div>
+          <div class="stat"><div class="stat-value">+17%</div><div class="stat-label">6-month growth</div></div>
+        </div>
+        <ul class="bullets" style="margin-top:32px;">
+          <li>Crypto onboarding live — USDC on Base, wallet-connected in 60 seconds</li>
+          <li>Apple Pay & Google Pay auto-debit at App Store / Play launch</li>
+          <li>LIFEUR collateral vault + reward distributor on Base Sepolia</li>
+          <li>Backtest engine: 6.83% CAGR full cycle (2022–2026), 15% in bull regimes</li>
+        </ul>
+      </div>
+      <div>
+        <img src="assets/dashboard.png" alt="Member dashboard" class="screenshot screenshot-sm" />
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 10: MARKET -->
+  <section class="slide">
+    <p class="eyebrow">Market opportunity</p>
+    <h2>$1.4T global life insurance.<br><span class="highlight">Zero yield for members.</span></h2>
+    <div class="grid-3">
+      <div class="card"><div class="num">560M</div><h3>Crypto users globally</h3><p>Underserved by traditional insurance — our beachhead market</p></div>
+      <div class="card"><div class="num">$89</div><h3>Avg. monthly premium</h3><p>Standard tier — affordable, recurring, auto-debit ready</p></div>
+      <div class="card"><div class="num">$200M+</div><h3>Target AUM Year 3</h3><p>At 20K members with cycle-locked capital compounding</p></div>
+    </div>
+    <p class="subtitle" style="margin-top:32px;">LifePool is mutual protection, not regulated insurance — faster to market, onchain-native, and built for the generation that expects their money to work.</p>
+  </section>
+
+  <!-- SLIDE 11: THE ASK -->
+  <section class="slide">
+    <p class="eyebrow">The opportunity</p>
+    <h1>Join the cycle.<br><span class="highlight">Fund the future of protection.</span></h1>
+    <p class="subtitle">We're raising to scale member acquisition, launch iOS/Android with fiat rails, and deploy mainnet contracts on Base.</p>
+    <div class="cta-box">
+      <h3>LifePool — Programmable Life Protection</h3>
+      <p>Recurring revenue · Locked AUM · Yield-generating premiums · Onchain transparency · Mobile-first distribution</p>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-value" style="font-size:32px;">lifepool.xyz</div><div class="stat-label">Product</div></div>
+      <div class="stat"><div class="stat-value" style="font-size:32px;">Base</div><div class="stat-label">Chain</div></div>
+      <div class="stat"><div class="stat-value" style="font-size:32px;">Q3 2026</div><div class="stat-label">Mainnet target</div></div>
+    </div>
+    <p class="footnote">Prototype metrics shown for illustration. Live testnet on Base Sepolia. Not regulated insurance — mutual protection network.</p>
+  </section>
+
+</div>
+
+<nav class="nav">
+  <button id="prev" aria-label="Previous">←</button>
+  <span class="counter" id="counter">1 / 11</span>
+  <button id="next" aria-label="Next">→</button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let current = 0;
+
+  function show(i) {
+    slides[current].classList.remove('active');
+    current = (i + slides.length) % slides.length;
+    slides[current].classList.add('active');
+    document.getElementById('counter').textContent = `${current + 1} / ${slides.length}`;
+  }
+
+  document.getElementById('prev').onclick = () => show(current - 1);
+  document.getElementById('next').onclick = () => show(current + 1);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); show(current + 1); }
+    if (e.key === 'ArrowLeft') show(current - 1);
+  });
+</script>
+
+</body>
+</html>

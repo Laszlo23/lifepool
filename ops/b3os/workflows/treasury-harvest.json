@@ -1,0 +1,29 @@
+{
+  "name": "LifePool — Treasury Harvest",
+  "description": "Weekly harvest of LIFEUR profits into RewardDistributor.",
+  "trigger": {
+    "type": "cronjob",
+    "schedule": "0 10 * * 1"
+  },
+  "nodes": [
+    {
+      "id": "signal",
+      "action": "http-request",
+      "config": {
+        "url": "{{env.LIFEPOOL_URL}}/api/ops/signal",
+        "method": "GET"
+      }
+    },
+    {
+      "id": "harvest",
+      "action": "evm-write",
+      "connector": "wallet",
+      "config": {
+        "contract": "{{env.TREASURY_VAULT_ADDRESS}}",
+        "function": "harvestToRewards",
+        "args": ["{{signal.suggestedHarvestLifeEur * 1e18}}"],
+        "chainId": 84532
+      }
+    }
+  ]
+}

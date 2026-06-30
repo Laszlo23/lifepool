@@ -1,0 +1,42 @@
+{
+  "name": "LifePool — Oracle Keeper",
+  "description": "Update MockOracle BTC/XRP EUR prices from Binance. Run every 6 hours.",
+  "trigger": {
+    "type": "cronjob",
+    "schedule": "0 */6 * * *"
+  },
+  "nodes": [
+    {
+      "id": "fetch-btc",
+      "action": "http-request",
+      "config": {
+        "url": "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT",
+        "method": "GET"
+      }
+    },
+    {
+      "id": "fetch-signal",
+      "action": "http-request",
+      "config": {
+        "url": "{{env.LIFEPOOL_URL}}/api/ops/signal",
+        "method": "GET"
+      }
+    },
+    {
+      "id": "set-btc-price",
+      "action": "evm-write",
+      "connector": "wallet",
+      "config": {
+        "contract": "{{env.MOCK_ORACLE_ADDRESS}}",
+        "function": "setPrice",
+        "args": ["{{env.TWBTC_ADDRESS}}", "{{computed.btcEur}}"],
+        "chainId": 84532
+      }
+    }
+  ],
+  "env": {
+    "LIFEPOOL_URL": "https://your-app.vercel.app",
+    "MOCK_ORACLE_ADDRESS": "from deployments/base-sepolia.json",
+    "TWBTC_ADDRESS": "from deployments/base-sepolia.json"
+  }
+}

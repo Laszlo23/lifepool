@@ -1,0 +1,54 @@
+{
+  "name": "LifePool — Grid Copy-Trade Cycle",
+  "description": "Hourly grid rebalance + DCA + harvest mirroring for all pool members.",
+  "trigger": {
+    "type": "cronjob",
+    "schedule": "0 * * * *"
+  },
+  "nodes": [
+    {
+      "id": "grid-strategy",
+      "action": "http-request",
+      "config": {
+        "url": "{{env.LIFEPOOL_URL}}/api/ops/grid-strategy",
+        "method": "GET"
+      }
+    },
+    {
+      "id": "set-grid-bps",
+      "action": "evm-write",
+      "connector": "wallet",
+      "config": {
+        "contract": "{{env.TREASURY_VAULT_ADDRESS}}",
+        "function": "setGridAllocationBps",
+        "args": ["{{grid-strategy.signal.gridAllocationBps}}"],
+        "chainId": 84532
+      }
+    },
+    {
+      "id": "execute-dca",
+      "action": "evm-write",
+      "connector": "wallet",
+      "config": {
+        "contract": "{{env.TREASURY_VAULT_ADDRESS}}",
+        "function": "executeDca",
+        "args": [
+          "{{grid-strategy.signal.suggestedDcaUsdc * 1e6}}",
+          "{{grid-strategy.signal.gridAllocationBps}}"
+        ],
+        "chainId": 84532
+      }
+    },
+    {
+      "id": "harvest",
+      "action": "evm-write",
+      "connector": "wallet",
+      "config": {
+        "contract": "{{env.TREASURY_VAULT_ADDRESS}}",
+        "function": "harvestToRewards",
+        "args": ["{{grid-strategy.signal.suggestedHarvestLifeEur * 1e18}}"],
+        "chainId": 84532
+      }
+    }
+  ]
+}
