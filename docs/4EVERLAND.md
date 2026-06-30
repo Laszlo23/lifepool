@@ -15,11 +15,14 @@ Both URLs are issued automatically by 4EVERLAND. You do not DNS-configure `*.ipf
 2. **Settings → Environment Variables** — add or update:
 
 ```
+NODE_VERSION=20
 VITE_CHAIN_ID=84532
 VITE_BASE_SEPOLIA_RPC_URL=https://sepolia.base.org
 VITE_APP_URL=https://lifepool-e17s.ipfs.4everland.app
 VITE_B3OS_OPERATOR_ADDRESS=0xaaf620ee9e2a805323BF7363992E33e4412be3FB
 ```
+
+> **Node 20+ required.** The default 4EVERLAND builder uses Node 14, which cannot run Vite 8. Setting `NODE_VERSION=20` (or `22`) fixes failed builds. The repo also ships `.nvmrc` and `package.json` `engines` for the same reason.
 
 3. **Settings → General** — confirm build:
    - Build command: `npm install && npm run build`

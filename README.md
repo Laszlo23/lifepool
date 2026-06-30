@@ -25,6 +25,7 @@ Connect this GitHub repo in [4EVERLAND Hosting](https://dashboard.4everland.org/
 **Environment variables** (required for wallet + RPC):
 
 ```
+NODE_VERSION=20
 VITE_CHAIN_ID=84532
 VITE_BASE_SEPOLIA_RPC_URL=https://sepolia.base.org
 VITE_APP_URL=https://lifepool-e17s.ipfs.4everland.app
