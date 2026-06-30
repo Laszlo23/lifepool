@@ -27,11 +27,18 @@ Connect this GitHub repo in [4EVERLAND Hosting](https://dashboard.4everland.org/
 ```
 VITE_CHAIN_ID=84532
 VITE_BASE_SEPOLIA_RPC_URL=https://sepolia.base.org
-VITE_APP_URL=https://your-site.4everland.app
+VITE_APP_URL=https://lifepool-e17s.ipfs.4everland.app
 VITE_B3OS_OPERATOR_ADDRESS=0xaaf620ee9e2a805323BF7363992E33e4412be3FB
 ```
 
-After first deploy, set `VITE_APP_URL` to your 4EVERLAND URL and redeploy.
+**Live URLs**
+
+| URL | Role |
+|-----|------|
+| https://lifepool-e17s.ipfs.4everland.app | Primary project domain |
+| https://lifepool-gbudx64a-laszlo23.ipfs.4everland.app | Deployment-specific mirror |
+
+Set `VITE_APP_URL` to the primary domain in 4EVERLAND → Settings → Environment Variables, then redeploy.
 
 See [docs/INVESTOR_DEMO.md](docs/INVESTOR_DEMO.md) for the investor walkthrough.
 

@@ -7,12 +7,12 @@
   "frame": {
     "version": "1",
     "name": "LifePool",
-    "iconUrl": "https://lifepool.app/favicon.svg",
-    "homeUrl": "https://lifepool.app",
-    "imageUrl": "https://lifepool.app/api/og",
+    "iconUrl": "https://lifepool-e17s.ipfs.4everland.app/favicon.svg",
+    "homeUrl": "https://lifepool-e17s.ipfs.4everland.app",
+    "imageUrl": "https://lifepool-e17s.ipfs.4everland.app/favicon.svg",
     "buttonTitle": "Open LifePool",
-    "splashImageUrl": "https://lifepool.app/favicon.svg",
+    "splashImageUrl": "https://lifepool-e17s.ipfs.4everland.app/favicon.svg",
     "splashBackgroundColor": "#0a0a0f",
-    "webhookUrl": "https://lifepool.app/api/frame"
+    "webhookUrl": "https://lifepool-e17s.ipfs.4everland.app"
   }
 }
