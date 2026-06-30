@@ -4,6 +4,9 @@ import { fileURLToPath } from "node:url";
 import { createWalletClient, createPublicClient, http, type Chain } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { baseSepolia } from "viem/chains";
+import { loadDotEnv } from "./load-env.ts";
+
+loadDotEnv();
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

@@ -151,7 +151,7 @@ npm run keeper:all       # run all keepers once
 | Output directory | `dist` |
 | Node | `NODE_VERSION=20` in env vars |
 
-Full guide: [docs/4EVERLAND.md](./docs/4EVERLAND.md)
+Full guide: [docs/4EVERLAND.md](./docs/4EVERLAND.md) · Keepers: [docs/KEEPERS.md](./docs/KEEPERS.md)
 
 ---
 

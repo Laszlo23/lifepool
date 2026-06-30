@@ -66,6 +66,14 @@ export const OPTIMIZED_REGIME_ALLOCATIONS: RegimeAllocationMap = {
 
 export const DEFAULT_STATIC_ALLOCATION = { grid: 0.7, stake: 0.3 };
 
+/** Must match TreasuryVault.sol MIN_GRID_BPS / MAX_GRID_BPS */
+export const MIN_GRID_BPS = 5000;
+export const MAX_GRID_BPS = 8000;
+
+export function clampGridBps(bps: number): number {
+  return Math.min(MAX_GRID_BPS, Math.max(MIN_GRID_BPS, bps));
+}
+
 /** Live production uses optimized set. */
 export function getActiveGridParams(): GridSimulatorParams {
   return OPTIMIZED_GRID_PARAMS;
@@ -76,5 +84,6 @@ export function getActiveRegimeAllocations(): RegimeAllocationMap {
 }
 
 export function regimeToGridBps(regime: MarketRegime): number {
-  return Math.round(getActiveRegimeAllocations()[regime]["btc-grid"] * 10_000);
+  const raw = Math.round(getActiveRegimeAllocations()[regime]["btc-grid"] * 10_000);
+  return clampGridBps(raw);
 }

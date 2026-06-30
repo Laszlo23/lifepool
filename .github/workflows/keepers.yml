@@ -2,8 +2,19 @@ name: LifePool Keepers
 
 on:
   schedule:
-    - cron: "0 */6 * * *"
+    # Full keeper cycle every 4 hours (oracle, rewards, grid DCA + harvest)
+    - cron: "0 */4 * * *"
   workflow_dispatch:
+    inputs:
+      job:
+        description: Which keeper job to run
+        required: false
+        default: all
+        type: choice
+        options:
+          - all
+          - grid
+          - oracle
 
 jobs:
   run-keepers:
@@ -19,8 +30,25 @@ jobs:
       - run: npm ci
 
       - name: Run all keepers
+        if: ${{ github.event.inputs.job == 'all' || github.event.inputs.job == '' }}
         env:
           KEEPER_PRIVATE_KEY: ${{ secrets.KEEPER_PRIVATE_KEY }}
           BASE_SEPOLIA_RPC_URL: ${{ secrets.BASE_SEPOLIA_RPC_URL }}
           EUR_USD_RATE: "0.92"
         run: npm run keeper:all
+
+      - name: Grid DCA + harvest only
+        if: ${{ github.event.inputs.job == 'grid' }}
+        env:
+          KEEPER_PRIVATE_KEY: ${{ secrets.KEEPER_PRIVATE_KEY }}
+          BASE_SEPOLIA_RPC_URL: ${{ secrets.BASE_SEPOLIA_RPC_URL }}
+          EUR_USD_RATE: "0.92"
+        run: npm run keeper:grid
+
+      - name: Oracle update only
+        if: ${{ github.event.inputs.job == 'oracle' }}
+        env:
+          KEEPER_PRIVATE_KEY: ${{ secrets.KEEPER_PRIVATE_KEY }}
+          BASE_SEPOLIA_RPC_URL: ${{ secrets.BASE_SEPOLIA_RPC_URL }}
+          EUR_USD_RATE: "0.92"
+        run: npm run keeper:oracle
