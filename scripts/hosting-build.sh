@@ -13,5 +13,5 @@ if [ "$NODE_MAJOR" -lt 20 ]; then
 fi
 
 npm install
-npm run build
+npm run build:web
 bash scripts/postbuild-hosting.sh

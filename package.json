@@ -9,7 +9,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:web": "vite build",
     "postbuild": "bash scripts/postbuild-hosting.sh",
+    "postbuild:web": "bash scripts/postbuild-hosting.sh",
     "build:hosting": "bash scripts/hosting-build.sh",
     "lint": "oxlint",
     "preview": "vite preview",

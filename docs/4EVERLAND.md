@@ -48,6 +48,8 @@ If you prefer git-triggered builds inside 4EVERLAND:
 |---------|-------|
 | Build command | `bash scripts/hosting-build.sh` |
 | Output directory | `dist` |
+
+Uses `vite build` only (no `tsc`) so hosting never fails on Node type checks.
 | Framework | Vite (or Other) |
 
 **Environment variables (required):**
