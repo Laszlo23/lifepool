@@ -1,12 +1,29 @@
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, usePublicClient } from "wagmi";
+import {
+  useAccount,
+  useReadContract,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+  usePublicClient,
+} from "wagmi";
 import { formatUnits } from "viem";
-import { CONTRACTS, faucetAbi, lifeEurAbi, lifePoolVaultAbi, rewardDistributorAbi } from "../lib/contracts";
+import {
+  CONTRACTS,
+  faucetAbi,
+  lifeEurAbi,
+  lifePoolVaultAbi,
+  rewardDistributorAbi,
+} from "../lib/contracts";
+import { contractCall } from "../lib/paymaster";
+import { useGamification } from "./useGamification";
+import { useSponsoredCalls } from "./useSponsoredCalls";
 import { useWallet } from "./useWeb3Ready";
 
 export function useFaucet() {
   const { address } = useAccount();
   const { ensureNetwork, isReady } = useWallet();
   const publicClient = usePublicClient();
+  const sponsored = useSponsoredCalls();
+  const { unlock } = useGamification();
 
   const canClaim = useReadContract({
     address: CONTRACTS.LifePoolFaucet,
@@ -17,26 +34,37 @@ export function useFaucet() {
   });
 
   const { writeContractAsync, data: hash, isPending, error, reset } = useWriteContract();
-  const { isLoading: confirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+  const { isLoading: confirming, isSuccess: writeSuccess } = useWaitForTransactionReceipt({
+    hash,
+  });
 
   const claim = async () => {
     await ensureNetwork();
-    const txHash = await writeContractAsync({
-      address: CONTRACTS.LifePoolFaucet,
-      abi: faucetAbi,
-      functionName: "claim",
+
+    await sponsored.execute([contractCall(CONTRACTS.LifePoolFaucet, faucetAbi, "claim", [])], async () => {
+      const txHash = await writeContractAsync({
+        address: CONTRACTS.LifePoolFaucet,
+        abi: faucetAbi,
+        functionName: "claim",
+      });
+      await publicClient!.waitForTransactionReceipt({ hash: txHash });
     });
-    await publicClient!.waitForTransactionReceipt({ hash: txHash });
+
     await canClaim.refetch();
+    unlock("faucet_claimed");
   };
 
   return {
     canClaim: canClaim.data ?? false,
     claim,
-    isPending: isPending || confirming,
-    isSuccess,
-    error,
-    reset,
+    isGasless: sponsored.isSupported,
+    isPending: sponsored.isPending || isPending || confirming,
+    isSuccess: sponsored.isSuccess || writeSuccess,
+    error: sponsored.error ?? error,
+    reset: () => {
+      reset();
+      sponsored.reset();
+    },
     refetch: canClaim.refetch,
     isReady,
   };
@@ -71,13 +99,9 @@ export function useLifePoolOnchain() {
 
   const data = membership.data;
   const cycleEndDate =
-    data && data[4]
-      ? new Date(Number(data[3]) * 1000).toISOString().slice(0, 10)
-      : null;
+    data && data[4] ? new Date(Number(data[3]) * 1000).toISOString().slice(0, 10) : null;
   const cycleStartDate =
-    data && data[4]
-      ? new Date(Number(data[2]) * 1000).toISOString().slice(0, 10)
-      : null;
+    data && data[4] ? new Date(Number(data[2]) * 1000).toISOString().slice(0, 10) : null;
 
   return {
     isMember: data?.[4] ?? false,
@@ -101,45 +125,82 @@ export function useLifePoolOnchain() {
 
 export function useJoinPool() {
   const { writeContractAsync, data: hash, isPending, error } = useWriteContract();
-  const { isLoading: confirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+  const { isLoading: confirming, isSuccess: writeSuccess } = useWaitForTransactionReceipt({
+    hash,
+  });
   const publicClient = usePublicClient();
   const { ensureNetwork } = useWallet();
+  const sponsored = useSponsoredCalls();
+  const { unlock } = useGamification();
 
   const join = async (tierId: number, amountWei: bigint) => {
     await ensureNetwork();
 
-    const approveHash = await writeContractAsync({
-      address: CONTRACTS.LifeEUR,
-      abi: lifeEurAbi,
-      functionName: "approve",
-      args: [CONTRACTS.LifePoolVault, amountWei],
-    });
-    await publicClient!.waitForTransactionReceipt({ hash: approveHash });
+    const calls = [
+      contractCall(CONTRACTS.LifeEUR, lifeEurAbi, "approve", [
+        CONTRACTS.LifePoolVault,
+        amountWei,
+      ]),
+      contractCall(CONTRACTS.LifePoolVault, lifePoolVaultAbi, "join", [tierId, amountWei]),
+    ];
 
-    const joinHash = await writeContractAsync({
-      address: CONTRACTS.LifePoolVault,
-      abi: lifePoolVaultAbi,
-      functionName: "join",
-      args: [tierId, amountWei],
+    await sponsored.execute(calls, async () => {
+      const approveHash = await writeContractAsync({
+        address: CONTRACTS.LifeEUR,
+        abi: lifeEurAbi,
+        functionName: "approve",
+        args: [CONTRACTS.LifePoolVault, amountWei],
+      });
+      await publicClient!.waitForTransactionReceipt({ hash: approveHash });
+
+      const joinHash = await writeContractAsync({
+        address: CONTRACTS.LifePoolVault,
+        abi: lifePoolVaultAbi,
+        functionName: "join",
+        args: [tierId, amountWei],
+      });
+      await publicClient!.waitForTransactionReceipt({ hash: joinHash });
     });
-    await publicClient!.waitForTransactionReceipt({ hash: joinHash });
-    return joinHash;
+    unlock("onchain_joined");
   };
 
-  return { join, isPending: isPending || confirming, isSuccess, error };
+  return {
+    join,
+    isGasless: sponsored.isSupported,
+    isPending: sponsored.isPending || isPending || confirming,
+    isSuccess: sponsored.isSuccess || writeSuccess,
+    error: sponsored.error ?? error,
+  };
 }
 
 export function useClaimRewards() {
-  const { writeContract, data: hash, isPending } = useWriteContract();
-  const { isLoading: confirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+  const { writeContractAsync, data: hash, isPending } = useWriteContract();
+  const { isLoading: confirming, isSuccess: writeSuccess } = useWaitForTransactionReceipt({
+    hash,
+  });
+  const publicClient = usePublicClient();
+  const sponsored = useSponsoredCalls();
+  const { unlock } = useGamification();
 
-  const claimRewards = () => {
-    writeContract({
-      address: CONTRACTS.RewardDistributor,
-      abi: rewardDistributorAbi,
-      functionName: "claim",
-    });
+  const claimRewards = async () => {
+    await sponsored.execute(
+      [contractCall(CONTRACTS.RewardDistributor, rewardDistributorAbi, "claim", [])],
+      async () => {
+        const txHash = await writeContractAsync({
+          address: CONTRACTS.RewardDistributor,
+          abi: rewardDistributorAbi,
+          functionName: "claim",
+        });
+        await publicClient!.waitForTransactionReceipt({ hash: txHash });
+      },
+    );
+    unlock("rewards_claimed");
   };
 
-  return { claimRewards, isPending: isPending || confirming, isSuccess };
+  return {
+    claimRewards,
+    isGasless: sponsored.isSupported,
+    isPending: sponsored.isPending || isPending || confirming,
+    isSuccess: sponsored.isSuccess || writeSuccess,
+  };
 }

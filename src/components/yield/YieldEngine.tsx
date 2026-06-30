@@ -41,11 +41,10 @@ export function YieldEngine() {
             <p className="text-xs text-muted">BTC/USDC grid + BTC stake only</p>
             <h1 className="text-xl font-semibold tracking-tight">Yield Engine</h1>
           </div>
-          <Badge tone="neon">{(live?.poolApy ?? 0).toFixed(1)}% blended</Badge>
+          <Badge tone="muted">Simulated {(live?.poolApy ?? 0).toFixed(1)}%</Badge>
         </div>
         <p className="mt-2 text-[11px] text-muted">
-          Cycle lock {CYCLE_LOCK_LABEL} · Grid Trader win rate{" "}
-          {(YIELD_ENGINE.gridApy > 0 ? 81 : 0)}%
+          Backtested projections · Cycle lock {CYCLE_LOCK_LABEL} · Run `npm run learn` to refresh adaptive weights
           {intel ? ` · ${intel.signal.regime} regime` : ""}
         </p>
       </header>

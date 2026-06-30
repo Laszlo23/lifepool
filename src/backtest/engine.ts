@@ -7,6 +7,10 @@ import {
   routeDcaContribution,
 } from "./allocator";
 import {
+  applyAdaptiveWeights,
+  getLearnedPatternMap,
+} from "./adaptive-learning";
+import {
   detectSignalSeries,
   getDcaMultiplier,
   getOpportunityWeights,
@@ -50,6 +54,7 @@ interface SimOptions {
   dailyCompound: boolean;
   smartDca: boolean;
   opportunityMode: boolean;
+  adaptiveMode: boolean;
 }
 
 interface SimState {
@@ -78,6 +83,7 @@ export function runBacktest(
     dailyCompound: config.dailyCompound !== false,
     smartDca: config.smartDca !== false,
     opportunityMode: config.opportunityMode !== false,
+    adaptiveMode: config.adaptiveMode !== false,
   };
 
   const dates = alignDates(store, config.startDate, config.endDate);
@@ -110,7 +116,7 @@ export function runBacktest(
       signalHistory,
       staticWeights,
       strategyReturns,
-      { optimized: false, dailyCompound: false, smartDca: false, opportunityMode: false },
+      { optimized: false, dailyCompound: false, smartDca: false, opportunityMode: false, adaptiveMode: false },
     );
     const baselineMember = buildMemberSummary(
       config,
@@ -150,7 +156,12 @@ function resolveTargets(
 ): Record<StrategyId, number> {
   const base = getBaseRegimeWeights(regime, opts.optimized, staticWeights);
   if (!opts.opportunityMode || !signal) return base;
-  return getOpportunityWeights(regime, signal, staticWeights, base);
+
+  let weights = getOpportunityWeights(regime, signal, staticWeights, base);
+  if (opts.adaptiveMode) {
+    weights = applyAdaptiveWeights(signal, weights, getLearnedPatternMap());
+  }
+  return weights;
 }
 
 function applyOpportunityBoost(

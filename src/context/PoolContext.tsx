@@ -16,6 +16,8 @@ import {
   type LivePoolState,
 } from "../engine/live-pool";
 import { addCycleLock } from "../engine/cycle";
+import { fetchLearnedStrategy } from "../backtest/adaptive-learning";
+import { unlockAchievement } from "../hooks/useGamification";
 import {
   DEFAULT_ENGINE_SETTINGS,
   type EngineSettings,
@@ -48,6 +50,8 @@ interface PoolContextValue {
   error: string | null;
   computing: boolean;
   setTab: (tab: ProductTab) => void;
+  navigateTab: (tab: ProductTab) => void;
+  enterGuestBrowse: () => void;
   startOnboarding: () => void;
   startCalculator: () => void;
   startFaucet: () => void;
@@ -105,6 +109,7 @@ export function PoolProvider({ children }: { children: ReactNode }) {
   const [showFaucet, setShowFaucet] = useState(false);
 
   useEffect(() => {
+    void fetchLearnedStrategy();
     loadMarketData()
       .then((data) => {
         setMarketData(data);
@@ -140,11 +145,46 @@ export function PoolProvider({ children }: { children: ReactNode }) {
     [marketData],
   );
 
+  const runGuestPreview = useCallback(
+    (engineSettings: EngineSettings) => {
+      if (!marketData) return;
+      const tier = COVERAGE_TIERS.find((t) => t.id === "standard")!;
+      const joinDate = computeMemberJoinDate(marketData);
+      const preview: MemberProfile = {
+        id: "guest-preview",
+        tierId: tier.id,
+        tierName: tier.name,
+        coverageAmount: tier.coverage,
+        monthlyContribution: tier.monthly,
+        walletAddress: "",
+        paymentMethod: "crypto",
+        joinDate,
+        cycleStartDate: joinDate,
+        cycleEndDate: addCycleLock(joinDate),
+        activatedAt: new Date().toISOString(),
+      };
+      setComputing(true);
+      setError(null);
+      try {
+        setLive(computeLivePoolState(marketData, preview, engineSettings));
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Guest preview failed");
+        setLive(null);
+      } finally {
+        setComputing(false);
+      }
+    },
+    [marketData],
+  );
+
   useEffect(() => {
-    if (member && marketData && phase === "active") {
+    if (!marketData) return;
+    if (member && phase === "active") {
       runEngine(member, settings);
+    } else if (phase === "guest") {
+      runGuestPreview(settings);
     }
-  }, [member, marketData, phase, settings, runEngine]);
+  }, [member, marketData, phase, settings, runEngine, runGuestPreview]);
 
   const completeOnboarding = useCallback(
     (payload: OnboardingPayload) => {
@@ -174,6 +214,8 @@ export function PoolProvider({ children }: { children: ReactNode }) {
       setPhase("active");
       setTab("dashboard");
       setGuestScreen("landing");
+      unlockAchievement("onboarding_complete");
+      if (payload.onchainJoined) unlockAchievement("onchain_joined");
     },
     [marketData],
   );
@@ -186,9 +228,34 @@ export function PoolProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const navigateTab = useCallback(
+    (nextTab: ProductTab) => {
+      setTab(nextTab);
+      setShowFaucet(false);
+      if (phase === "guest") {
+        if (guestScreen === "onboarding" || guestScreen === "faucet") {
+          setGuestScreen("browse");
+        } else if (guestScreen === "landing" && nextTab !== "dashboard") {
+          setGuestScreen("browse");
+        }
+      }
+    },
+    [phase, guestScreen],
+  );
+
+  const enterGuestBrowse = useCallback(() => {
+    setGuestScreen("browse");
+  }, []);
+
+  const startCalculator = useCallback(() => {
+    setGuestScreen("browse");
+    setTab("backtest");
+  }, []);
+
   const refreshEngine = useCallback(() => {
     if (member) runEngine(member, settings);
-  }, [member, settings, runEngine]);
+    else if (phase === "guest") runGuestPreview(settings);
+  }, [member, phase, settings, runEngine, runGuestPreview]);
 
   const signOut = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
@@ -234,9 +301,14 @@ export function PoolProvider({ children }: { children: ReactNode }) {
       error,
       computing,
       setTab,
+      navigateTab,
+      enterGuestBrowse,
       startOnboarding: () => setGuestScreen("onboarding"),
-      startCalculator: () => setGuestScreen("calculator"),
-      startFaucet: () => setGuestScreen("faucet"),
+      startCalculator,
+      startFaucet: () => {
+        setGuestScreen("faucet");
+        setShowFaucet(true);
+      },
       backToLanding: () => setGuestScreen("landing"),
       completeOnboarding,
       updateSettings,
@@ -244,7 +316,10 @@ export function PoolProvider({ children }: { children: ReactNode }) {
       signOut,
       activateDemoMember,
       showFaucet,
-      openFaucet: () => setShowFaucet(true),
+      openFaucet: () => {
+        setShowFaucet(true);
+        if (phase === "guest") setGuestScreen("faucet");
+      },
       closeFaucet: () => setShowFaucet(false),
     }),
     [
@@ -257,6 +332,9 @@ export function PoolProvider({ children }: { children: ReactNode }) {
       settings,
       error,
       computing,
+      navigateTab,
+      enterGuestBrowse,
+      startCalculator,
       completeOnboarding,
       updateSettings,
       refreshEngine,

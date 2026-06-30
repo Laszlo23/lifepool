@@ -13,15 +13,14 @@ const OPPORTUNITY_COLORS = {
 } as const;
 
 export function MarketIntel() {
-  const { live, marketData, member, computing, refreshEngine } = usePool();
+  const { live, marketData, computing, refreshEngine } = usePool();
+  const previewContribution = live?.memberResult.member.avgMonthlyContribution ?? 89;
 
   const intel = live?.intel;
   const analog = useMemo(() => {
     if (!marketData || !intel) return null;
     return findHistoricalAnalog(marketData, intel.signal);
   }, [marketData, intel]);
-
-  if (!member) return null;
 
   if (!intel) {
     return (
@@ -142,8 +141,8 @@ export function MarketIntel() {
             {dcaMult > 1 && (
               <>
                 {" "}
-                ({formatCurrency(member.monthlyContribution * dcaMult)} effective on{" "}
-                {formatCurrency(member.monthlyContribution)}/mo)
+                ({formatCurrency(previewContribution * dcaMult)} effective on{" "}
+                {formatCurrency(previewContribution)}/mo)
               </>
             )}
           </p>

@@ -1,5 +1,6 @@
 import type { MarketRegime } from "./types";
 import type { StrategyId } from "./types";
+import { getLearnedStrategySync } from "./adaptive-learning";
 
 /** Tunable BTC/USDC grid simulator coefficients. */
 export interface GridSimulatorParams {
@@ -74,13 +75,20 @@ export function clampGridBps(bps: number): number {
   return Math.min(MAX_GRID_BPS, Math.max(MIN_GRID_BPS, bps));
 }
 
-/** Live production uses optimized set. */
+/** Live production uses learned set when available, else optimized constants. */
 export function getActiveGridParams(): GridSimulatorParams {
-  return OPTIMIZED_GRID_PARAMS;
+  const learned = getLearnedStrategySync();
+  return learned?.gridParams ?? OPTIMIZED_GRID_PARAMS;
 }
 
 export function getActiveRegimeAllocations(): RegimeAllocationMap {
-  return OPTIMIZED_REGIME_ALLOCATIONS;
+  const learned = getLearnedStrategySync();
+  return learned?.regime ?? OPTIMIZED_REGIME_ALLOCATIONS;
+}
+
+export function getActiveStaticGridWeight(): number {
+  const learned = getLearnedStrategySync();
+  return learned?.staticGrid ?? DEFAULT_STATIC_ALLOCATION.grid;
 }
 
 export function regimeToGridBps(regime: MarketRegime): number {

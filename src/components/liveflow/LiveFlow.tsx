@@ -7,19 +7,18 @@ import { Badge } from "../ui/Badge";
 import { Metric } from "../ui/Metric";
 
 export function LiveFlow() {
-  const { member, live, computing } = usePool();
-
+  const { live, computing, phase } = usePool();
   const ledger = live?.memberResult.monthlyLedger ?? [];
-  const monthlyContribution = member?.monthlyContribution ?? 0;
+  const monthlyContribution = live?.memberResult.member.avgMonthlyContribution ?? 89;
   const flowItems = useMemo(
     () => buildFlowEvents(ledger, monthlyContribution),
     [ledger, monthlyContribution],
   );
 
-  if (!member || !live) {
+  if (!live) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center px-5 text-sm text-muted">
-        {computing ? "Loading live flow…" : "Activate protection to see your flow"}
+      <div className="flex min-h-[400px] flex-col items-center justify-center gap-3 px-5 text-center text-sm text-muted">
+        <p>{computing ? "Loading live flow…" : "Waiting for engine data…"}</p>
       </div>
     );
   }
@@ -35,10 +34,11 @@ export function LiveFlow() {
   return (
     <div className="min-h-full bg-void px-5 pb-6 pt-5">
       <div className="mb-5">
-        <p className="text-xs text-muted">Real-time · engine-backed</p>
-        <h1 className="text-xl font-semibold tracking-tight">Live Flow</h1>
+        <p className="text-xs text-muted">Simulated · backtest engine</p>
+        <h1 className="text-xl font-semibold tracking-tight">Projected flow</h1>
         <p className="mt-1 text-[11px] text-muted">
-          Income, yield, and ROI from your join date to {live.lastUpdated}
+          Illustrative income timeline — not onchain events · Base Sepolia PoC
+          {phase === "guest" ? " · guest preview" : ""}
         </p>
       </div>
 
@@ -65,7 +65,7 @@ export function LiveFlow() {
       <div className="mt-4 grid grid-cols-2 gap-3">
         <Metric
           label="Monthly income"
-          value={formatCurrency(member.monthlyContribution)}
+          value={formatCurrency(summary.avgMonthlyContribution)}
           sub="USDC contribution"
           size="sm"
         />

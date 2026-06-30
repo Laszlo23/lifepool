@@ -2,6 +2,11 @@ import { buildStaticWeightMap, getTargetWeights as getBaseRegimeWeights } from "
 import { runBacktest, PRESET_CONFIGS } from "../backtest/engine";
 import { getLatestMarketDate, normalizeAllocations } from "../backtest/market-data";
 import {
+  applyAdaptiveWeights,
+  enrichIntelMoves,
+  getLearnedPatternMap,
+} from "../backtest/adaptive-learning";
+import {
   buildIntelSnapshot,
   getOpportunityWeights,
   type IntelSnapshot,
@@ -44,6 +49,7 @@ export function computeLivePoolState(
     dailyCompound: true,
     smartDca: true,
     opportunityMode: true,
+    adaptiveMode: true,
   },
 ): LivePoolState {
   const endDate = getLatestMarketDate(store);
@@ -60,8 +66,9 @@ export function computeLivePoolState(
   const poolResult = runBacktest(store, {
     ...PRESET_CONFIGS.full!,
     opportunityMode: settings.opportunityMode,
+    adaptiveMode: settings.adaptiveMode,
   });
-  const intel = buildIntelSnapshot(store);
+  const intel = enrichIntelMoves(buildIntelSnapshot(store));
 
   const latestSignal =
     memberResult.signalHistory[memberResult.signalHistory.length - 1];
@@ -75,12 +82,24 @@ export function computeLivePoolState(
     settings.optimized,
     staticWeights,
   );
-  const currentAllocation = getOpportunityWeights(
-    latestRegime?.regime ?? "neutral",
-    latestSignal,
-    staticWeights,
-    baseWeights,
-  );
+  const currentAllocation =
+    settings.adaptiveMode !== false && latestSignal
+      ? applyAdaptiveWeights(
+          latestSignal,
+          getOpportunityWeights(
+            latestRegime?.regime ?? "neutral",
+            latestSignal,
+            staticWeights,
+            baseWeights,
+          ),
+          getLearnedPatternMap(),
+        )
+      : getOpportunityWeights(
+          latestRegime?.regime ?? "neutral",
+          latestSignal,
+          staticWeights,
+          baseWeights,
+        );
 
   return {
     memberResult,

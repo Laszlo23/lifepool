@@ -174,20 +174,20 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
   return (
     <div className="flex h-full flex-col animate-slide-up">
       <div className="flex-1">
-        <Badge tone="accent">Smart wallet · {CYCLE_LOCK_LABEL} cycle</Badge>
+        <Badge tone="accent">Base Sepolia testnet · PoC demo</Badge>
         <h2 className="mt-4 text-[28px] font-semibold leading-tight tracking-tight">
-          BTC/USDC grid + BTC stake
+          Try the mutual pool on testnet
         </h2>
         <p className="mt-3 text-[15px] leading-relaxed text-muted">
-          One winning grid trading agent on BTC/USDC, plus native BTC staking.
-          Every cycle locks for {CYCLE_LOCK_LABEL} — swing profits compound in-cycle.
+          This is a proof of concept — not regulated insurance. Connect a smart wallet,
+          claim testnet funds, and join the pool onchain with gas-sponsored txs.
         </p>
 
         <div className="mt-8 space-y-3">
           {[
-            { icon: "⊞", title: "Grid Trader agent", desc: "81% win rate on BTC/USDC swings" },
-            { icon: "₿", title: "BTC staking", desc: "Validator yield + BTC exposure" },
-            { icon: "⏱", title: CYCLE_LOCK_LABEL, desc: "Minimum commitment per cycle" },
+            { icon: "⊞", title: "Grid agent (simulated)", desc: "Backtested BTC/USDC swing strategy" },
+            { icon: "₿", title: "LIFEUR stablecoin", desc: "Mint against testnet collateral" },
+            { icon: "⏱", title: CYCLE_LOCK_LABEL, desc: "Onchain cycle lock when you join" },
           ].map((item) => (
             <div
               key={item.title}
@@ -527,7 +527,7 @@ function ReviewStep({
           Review & activate
         </h2>
         <p className="mt-2 text-sm text-muted">
-          Join the pool onchain to enforce your {CYCLE_LOCK_LABEL} cycle lock.
+          Join the pool onchain to lock your {CYCLE_LOCK_LABEL} cycle. Testnet only — simulated cover caps below.
         </p>
 
         <div className="mt-4">
@@ -562,7 +562,7 @@ function ReviewStep({
       </div>
 
       <Button fullWidth size="lg" onClick={onConfirm} className="mt-6">
-        {onchainJoined ? "Enter dashboard" : "Enter dashboard · join onchain anytime"}
+        {onchainJoined ? "Enter demo dashboard" : "Enter dashboard · join onchain to earn badges"}
       </Button>
     </div>
   );

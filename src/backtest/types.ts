@@ -53,6 +53,8 @@ export interface BacktestConfig {
   smartDca?: boolean;
   /** Bear-market opportunity hunting via historical signals */
   opportunityMode?: boolean;
+  /** Pattern-calibrated allocation shifts from walk-forward learning */
+  adaptiveMode?: boolean;
 }
 
 export interface RegimeSnapshot {

@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "learnedAt": "2026-06-30T22:00:35.151Z",
+  "gridParams": {
+    "vol7Coeff": 0.66,
+    "vol30Coeff": 0.36,
+    "swingThreshold": 0.015,
+    "swingCapture": 0.54,
+    "swingFee": 0.0015,
+    "usdcIdleDaily": 0.00008,
+    "trendDragCoeff": 0.06,
+    "trendMoveThreshold": 0.045,
+    "maxDailyLoss": -0.022,
+    "stakingDaily": 0.0001,
+    "stakingBtcExposure": 0.92
+  },
+  "regime": {
+    "bear": {
+      "btc-grid": 0.86,
+      "btc-stake": 0.14
+    },
+    "neutral": {
+      "btc-grid": 0.72,
+      "btc-stake": 0.28
+    },
+    "bull": {
+      "btc-grid": 0.58,
+      "btc-stake": 0.42000000000000004
+    }
+  },
+  "staticGrid": 0.7,
+  "patternStats": [
+    {
+      "id": "grid-vol-expansion",
+      "triggers": 29,
+      "wins30d": 25,
+      "winRate30d": 0.8620689655172413,
+      "avgReturn30d": 0.09414031745777562,
+      "learnedWeight": 0.7086206896551724
+    },
+    {
+      "id": "capitulation-flush",
+      "triggers": 71,
+      "wins30d": 40,
+      "winRate30d": 0.5633802816901409,
+      "avgReturn30d": 0.0241832598865551,
+      "learnedWeight": 0.7015492957746479
+    },
+    {
+      "id": "accumulation-zone",
+      "triggers": 207,
+      "wins30d": 114,
+      "winRate30d": 0.5507246376811594,
+      "avgReturn30d": 0.0013239690021938273,
+      "learnedWeight": 0.5742028985507246
+    },
+    {
+      "id": "recovery-breakout",
+      "triggers": 538,
+      "wins30d": 274,
+      "winRate30d": 0.5092936802973977,
+      "avgReturn30d": 0.0255705168565971,
+      "learnedWeight": 0.5224163568773234
+    },
+    {
+      "id": "bull-stake-tilt",
+      "triggers": 481,
+      "wins30d": 236,
+      "winRate30d": 0.49064449064449067,
+      "avgReturn30d": 0.01898593574470714,
+      "learnedWeight": 0.4777546777546777
+    },
+    {
+      "id": "swing-rally",
+      "triggers": 48,
+      "wins30d": 21,
+      "winRate30d": 0.4375,
+      "avgReturn30d": -0.013528471921298914,
+      "learnedWeight": 0.4262500000000001
+    },
+    {
+      "id": "hold-course",
+      "triggers": 721,
+      "wins30d": 396,
+      "winRate30d": 0.5492371705963939,
+      "avgReturn30d": 0.022005068644594016,
+      "learnedWeight": 0.327877947295423
+    }
+  ],
+  "walkForward": {
+    "trainScore": 186.35359906484018,
+    "holdoutScore": 499.0961245112225,
+    "upliftVsBaseline": 3.64698191287997,
+    "folds": 12
+  }
+}

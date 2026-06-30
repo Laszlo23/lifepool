@@ -2,6 +2,7 @@ import { LandingHero } from "../landing/LandingHero";
 import { OnboardingFlow } from "../onboarding/OnboardingFlow";
 import { FaucetScreen } from "../faucet/FaucetScreen";
 import { GuestCalculator } from "../guest/GuestCalculator";
+import { AchievementToast } from "../gamification/PlayerProgress";
 import { usePool } from "../../context/PoolContext";
 
 export function GuestFlow() {
@@ -44,6 +45,7 @@ export function GuestFlow() {
 
   return (
     <div className="mx-auto min-h-dvh w-full max-w-[430px] bg-void">
+      <AchievementToast />
       <LandingHero
         onGetStarted={startOnboarding}
         onOpenFaucet={startFaucet}

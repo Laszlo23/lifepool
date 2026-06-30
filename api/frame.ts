@@ -1,7 +1,9 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 const APP_URL = process.env.VITE_APP_URL ?? "https://lifepool.app";
-const FAUCET_ADDRESS = process.env.VITE_POOL_FAUCET_ADDRESS ?? "";
+/** Base Sepolia LifePoolFaucet — from deployments/base-sepolia.json */
+const FAUCET_ADDRESS =
+  process.env.LIFEPOOL_FAUCET_ADDRESS ?? "0xDbb8dDcf2c9b03A1d64B2284C0Aa0971FBB7ce2E";
 
 /**
  * Farcaster Frame endpoint — GET returns frame HTML, POST handles button actions.
@@ -12,8 +14,8 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     const html = `<!DOCTYPE html>
 <html>
   <head>
-    <meta property="og:title" content="LifePool · LIFEUR on Base" />
-    <meta property="og:description" content="Mint EUR stablecoin against BTC/XRP · Grid + stake · 4y cycle" />
+    <meta property="og:title" content="LifePool · Testnet PoC on Base" />
+    <meta property="og:description" content="Proof of concept on Base Sepolia · Not regulated insurance · Claim testnet funds" />
     <meta property="og:image" content="${APP_URL}/api/og" />
     <meta name="fc:frame" content="vNext" />
     <meta name="fc:frame:image" content="${APP_URL}/api/og" />
@@ -24,14 +26,13 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     <meta name="fc:frame:button:2:target" content="${APP_URL}/?ref=farcaster" />
     <meta name="fc:frame:post_url" content="${APP_URL}/api/frame" />
   </head>
-  <body>LifePool Frame</body>
+  <body>LifePool Frame · Base Sepolia testnet</body>
 </html>`;
     res.setHeader("Content-Type", "text/html");
     return res.status(200).send(html);
   }
 
   if (req.method === "POST") {
-    const txTarget = FAUCET_ADDRESS || "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853";
     const frameHtml = `<!DOCTYPE html>
 <html>
   <head>
@@ -39,12 +40,12 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     <meta name="fc:frame:image" content="${APP_URL}/api/og" />
     <meta name="fc:frame:button:1" content="Sign claim tx" />
     <meta name="fc:frame:button:1:action" content="tx" />
-    <meta name="fc:frame:button:1:target" content="${txTarget}" />
+    <meta name="fc:frame:button:1:target" content="${FAUCET_ADDRESS}" />
     <meta name="fc:frame:button:2" content="Open app" />
     <meta name="fc:frame:button:2:action" content="link" />
     <meta name="fc:frame:button:2:target" content="${APP_URL}/?ref=farcaster" />
   </head>
-  <body>Claim tWBTC · tXRP · LIFEUR</body>
+  <body>Claim tWBTC · tXRP · LIFEUR · testnet only</body>
 </html>`;
     res.setHeader("Content-Type", "text/html");
     return res.status(200).send(frameHtml);

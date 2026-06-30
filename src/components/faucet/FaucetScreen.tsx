@@ -16,7 +16,7 @@ interface FaucetScreenProps {
 
 export function FaucetScreen({ onBack }: FaucetScreenProps) {
   const { address, isConnected, connectWallet, connecting, isReady } = useWallet();
-  const { canClaim, claim, isPending, isSuccess, error } = useFaucet();
+  const { canClaim, claim, isPending, isSuccess, error, isGasless } = useFaucet();
   const { data: lifeEurBalance, refetch: refetchLifeEur } = useLifeEurBalance();
   const { wbtc, xrp } = useCollateralBalances();
 
@@ -44,10 +44,14 @@ export function FaucetScreen({ onBack }: FaucetScreenProps) {
         </button>
       )}
 
-      <Badge tone="accent">Base Sepolia testnet</Badge>
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge tone="accent">Base Sepolia testnet</Badge>
+        {isGasless && <Badge tone="neon">Gas sponsored</Badge>}
+      </div>
       <h1 className="mt-3 text-[28px] font-semibold tracking-tight">LifePool Faucet</h1>
       <p className="mt-2 text-sm leading-relaxed text-muted">
         Free testnet funds to join the pool. Claim once every 24 hours per wallet.
+        {isGasless ? " No Sepolia ETH needed with Coinbase Smart Wallet." : ""}
       </p>
 
       <div className="mt-4">
@@ -125,10 +129,10 @@ export function FaucetScreen({ onBack }: FaucetScreenProps) {
       <div className="mt-6 rounded-2xl border border-neon/20 bg-neon/5 p-4 text-xs text-muted">
         <p className="font-medium text-neon">Next steps</p>
         <ol className="mt-2 list-decimal space-y-1 pl-4">
-          <li>Get Base Sepolia ETH for gas (Coinbase faucet or bridge)</li>
+          {!isGasless && <li>Get Base Sepolia ETH for gas (Coinbase faucet or bridge)</li>}
+          <li>Connect Coinbase or Base Smart Wallet</li>
           <li>Claim faucet funds</li>
-          <li>Start onboarding → connect wallet</li>
-          <li>Join LifePool onchain (10 LIFEUR)</li>
+          <li>Join LifePool onchain (25–100 LIFEUR by tier)</li>
           <li>Deposit tUSDC premium in Ops tab</li>
         </ol>
       </div>

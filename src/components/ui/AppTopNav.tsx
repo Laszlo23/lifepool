@@ -8,6 +8,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { WalletChip } from "../wallet/WalletChip";
+import { PlayerProgress } from "../gamification/PlayerProgress";
 import type { ProductTab } from "../../types/member";
 
 const TABS: {
@@ -42,12 +43,15 @@ export function AppTopNav({ active, onNavigate }: AppTopNavProps) {
           </div>
           <div className="text-left">
             <span className="block text-sm font-semibold leading-tight">LifePool</span>
-            <span className="block text-[10px] text-muted">Protection network</span>
+            <span className="block text-[10px] text-muted">Testnet PoC</span>
           </div>
         </button>
-        <WalletChip />
-        <span className="rounded-full border border-neon/30 bg-neon/10 px-2.5 py-1 text-[10px] font-medium text-neon">
-          Live
+        <div className="flex items-center gap-2">
+          <PlayerProgress compact />
+          <WalletChip />
+        </div>
+        <span className="rounded-full border border-amber-500/35 bg-amber-500/10 px-2.5 py-1 text-[10px] font-medium text-amber-100">
+          Sepolia
         </span>
       </div>
 

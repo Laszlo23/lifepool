@@ -9,6 +9,7 @@ import { formatLifeEur, useLifeEurBalance } from "../../hooks/useLifeEUR";
 import { useClaimRewards, useLifePoolOnchain } from "../../hooks/useLifePool";
 import { formatCurrency } from "../../data/pool";
 import { useWallet } from "../../hooks/useWeb3Ready";
+import { PlayerProgress } from "../gamification/PlayerProgress";
 import { Badge } from "../ui/Badge";
 import { Metric } from "../ui/Metric";
 import { Button } from "../ui/Button";
@@ -42,8 +43,8 @@ export function Dashboard() {
       <header className="px-5 pt-5 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-muted">Live engine · {live?.lastUpdated}</p>
-            <h1 className="text-xl font-semibold tracking-tight">Your protection</h1>
+            <p className="text-xs text-muted">Simulated engine · {live?.lastUpdated}</p>
+            <h1 className="text-xl font-semibold tracking-tight">Your demo profile</h1>
             {onchain.isMember && (
               <span className="mt-1 inline-block">
                 <Badge tone="neon">Onchain member</Badge>
@@ -102,6 +103,9 @@ export function Dashboard() {
         )}
 
       <div className="px-5">
+        <PlayerProgress />
+
+        <div className="mt-4">
         <CoverageCard
           coverage={member.coverageAmount}
           tierName={member.tierName}
@@ -116,6 +120,8 @@ export function Dashboard() {
           daysLeft={daysLeft}
           onchain={onchain.isMember}
         />
+
+        </div>
 
         <div className="mt-4 rounded-2xl border border-border bg-card p-4">
           <p className="text-[11px] font-medium uppercase tracking-wider text-muted">
@@ -136,7 +142,7 @@ export function Dashboard() {
               Faucet
             </Button>
             {onchain.isMember && (
-              <Button size="sm" onClick={claimRewards} disabled={claiming}>
+              <Button size="sm" onClick={() => void claimRewards()} disabled={claiming}>
                 {claiming ? "…" : "Claim rewards"}
               </Button>
             )}
@@ -150,12 +156,12 @@ export function Dashboard() {
           <StatCard
             label="Monthly contribution"
             value={formatCurrency(member.monthlyContribution)}
-            sub="USDC · auto-debit"
+            sub="Simulated · manual deposit in Ops"
           />
           <StatCard
             label="Yield earned"
             value={formatCurrency(memberSummary?.yieldEarned ?? 0)}
-            sub={`${memberSummary?.contributionMonths ?? 0} months · ${(live?.memberApy ?? 0).toFixed(1)}% APY`}
+            sub={`${memberSummary?.contributionMonths ?? 0} months · ${(live?.memberApy ?? 0).toFixed(1)}% backtest APY`}
             accent
           />
         </div>
@@ -280,12 +286,12 @@ function CoverageCard({
       <div className="flex items-start justify-between">
         <div>
           <span className="text-[11px] font-medium uppercase tracking-wider text-muted">
-            Your coverage amount
+            Simulated cover cap (PoC)
           </span>
           <div className="mt-1 text-[32px] font-semibold tracking-tight text-neon">
             {formatCurrency(coverage)}
           </div>
-          <Badge tone="neon">Active · {tierName} tier</Badge>
+          <Badge tone="muted">Demo · {tierName} tier</Badge>
         </div>
         <div className="text-right">
           <span className="text-[10px] text-muted">Pool share</span>
@@ -391,7 +397,7 @@ function MechanicsStrip() {
   return (
     <div className="mt-6 mb-4">
       <p className="mb-3 text-xs font-medium uppercase tracking-widest text-muted">
-        How your protection works
+        How the demo models mutual cover
       </p>
       <div className="flex gap-2">
         {items.map((item) => (

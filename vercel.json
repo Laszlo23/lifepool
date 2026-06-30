@@ -2,6 +2,7 @@
   "rewrites": [
     { "source": "/api/frame", "destination": "/api/frame.ts" },
     { "source": "/api/og", "destination": "/api/og.ts" },
+    { "source": "/api/paymaster", "destination": "/api/paymaster.ts" },
     { "source": "/api/ops/signal", "destination": "/api/ops/signal.ts" },
     { "source": "/api/ops/treasury", "destination": "/api/ops/treasury.ts" },
     { "source": "/api/ops/grid-strategy", "destination": "/api/ops/grid-strategy.ts" }

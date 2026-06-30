@@ -1,6 +1,6 @@
 export type ProductTab = "dashboard" | "liveflow" | "yield" | "intel" | "treasury" | "backtest";
 
-export type GuestScreen = "landing" | "onboarding" | "faucet" | "calculator";
+export type GuestScreen = "landing" | "browse" | "onboarding" | "faucet" | "calculator";
 
 export type PaymentMethod = "crypto" | "apple_pay" | "google_pay";
 
@@ -23,6 +23,7 @@ export interface EngineSettings {
   dailyCompound: boolean;
   smartDca: boolean;
   opportunityMode: boolean;
+  adaptiveMode: boolean;
 }
 
 export const DEFAULT_ENGINE_SETTINGS: EngineSettings = {
@@ -30,4 +31,5 @@ export const DEFAULT_ENGINE_SETTINGS: EngineSettings = {
   dailyCompound: true,
   smartDca: true,
   opportunityMode: true,
+  adaptiveMode: true,
 };

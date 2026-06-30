@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getRegimeColor, getRegimeLabel } from "../../backtest/allocator";
+import { getLearnedStrategySync } from "../../backtest/adaptive-learning";
 import { runBacktest } from "../../backtest/engine";
 import { computeBtcDcaBalance } from "../../backtest/market-data";
 import { PATTERN_LABELS } from "../../backtest/signals";
@@ -19,6 +20,7 @@ type FormState = {
   dailyCompound: boolean;
   smartDca: boolean;
   opportunityMode: boolean;
+  adaptiveMode: boolean;
 };
 
 function buildMemberForm(
@@ -36,6 +38,7 @@ function buildMemberForm(
     dailyCompound: settings.dailyCompound,
     smartDca: settings.smartDca,
     opportunityMode: settings.opportunityMode,
+    adaptiveMode: settings.adaptiveMode,
   };
 }
 
@@ -52,6 +55,7 @@ const QUICK_EXAMPLES: QuickExample[] = [
     dailyCompound: true,
     smartDca: true,
     opportunityMode: true,
+    adaptiveMode: true,
   },
   {
     label: "$89 · Standard tier · 2024",
@@ -63,6 +67,7 @@ const QUICK_EXAMPLES: QuickExample[] = [
     dailyCompound: true,
     smartDca: true,
     opportunityMode: true,
+    adaptiveMode: true,
   },
   {
     label: "$169 · Premium · Bull run",
@@ -74,6 +79,7 @@ const QUICK_EXAMPLES: QuickExample[] = [
     dailyCompound: true,
     smartDca: true,
     opportunityMode: true,
+    adaptiveMode: true,
   },
 ];
 
@@ -131,6 +137,7 @@ export function BacktestLab() {
         dailyCompound: f.dailyCompound,
         smartDca: f.smartDca,
         opportunityMode: f.opportunityMode,
+        adaptiveMode: f.adaptiveMode,
       });
 
       try {
@@ -156,6 +163,7 @@ export function BacktestLab() {
           dailyCompound: f.dailyCompound,
           smartDca: f.smartDca,
           opportunityMode: f.opportunityMode,
+          adaptiveMode: f.adaptiveMode,
         };
 
         const res = runBacktest(marketData, config);
@@ -179,24 +187,37 @@ export function BacktestLab() {
     return result.contributions.length;
   }, [result]);
 
+  const learned = getLearnedStrategySync();
+
   return (
     <div className="min-h-full bg-void">
       <header className="px-5 pt-14 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-muted">LifePool</p>
+            <p className="text-xs text-muted">LifePool · simulated</p>
             <h1 className="text-xl font-semibold tracking-tight">
               Yield Calculator
             </h1>
           </div>
-          <Badge tone="neon">Live backtest</Badge>
+          <Badge tone="muted">Backtest engine</Badge>
         </div>
         <p className="mt-2 text-[11px] leading-relaxed text-muted">
-          Real Binance price data · 11 onchain strategies · verifiable math
+          Real Binance BTC/USDC data · walk-forward learning · not live mainnet performance
         </p>
       </header>
 
       <div className="px-5 space-y-4">
+        {learned && (
+          <div className="rounded-2xl border border-neon/25 bg-neon/5 p-4 text-[11px]">
+            <p className="font-semibold text-neon">Adaptive strategy loaded</p>
+            <p className="mt-1 text-muted">
+              Holdout score {(learned.walkForward.holdoutScore * 100).toFixed(1)} ·{" "}
+              +{(learned.walkForward.upliftVsBaseline * 100).toFixed(0)}% vs baseline ·{" "}
+              {learned.walkForward.folds} walk-forward folds · updated{" "}
+              {learned.learnedAt.slice(0, 10)}
+            </p>
+          </div>
+        )}
         <CalculatorForm
           form={form}
           onChange={setForm}
@@ -384,6 +405,12 @@ function CalculatorForm({
           sub="Historical signals drive aggressive bear allocation + DCA"
           checked={form.opportunityMode}
           onChange={(v) => onChange({ ...form, opportunityMode: v })}
+        />
+        <ToggleRow
+          label="Adaptive learning"
+          sub="Pattern-calibrated weights from walk-forward backtests"
+          checked={form.adaptiveMode}
+          onChange={(v) => onChange({ ...form, adaptiveMode: v })}
         />
       </div>
 

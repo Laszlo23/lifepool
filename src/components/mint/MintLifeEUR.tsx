@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { parseUnits, formatUnits } from "viem";
-import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from "wagmi";
-import { useWallet, useCollateralBalances, useMaxMintable, formatLifeEur } from "../../hooks/useLifeEUR";
-import { CONTRACTS, collateralVaultAbi, erc20Abi } from "../../lib/contracts";
+import { formatUnits } from "viem";
+import { useReadContract } from "wagmi";
+import { useWallet, useCollateralBalances, useMaxMintable, useMintLifeEur, formatLifeEur } from "../../hooks/useLifeEUR";
+import { useGamification } from "../../hooks/useGamification";
+import { CONTRACTS, collateralVaultAbi } from "../../lib/contracts";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 
@@ -12,17 +13,15 @@ export function MintLifeEUR({ onContinue }: { onContinue?: () => void }) {
   const { address, isConnected, connectWallet } = useWallet();
   const { wbtc, xrp } = useCollateralBalances();
   const { data: maxMintable } = useMaxMintable();
+  const { depositAndMint, isPending, isSuccess, isGasless, error } = useMintLifeEur();
+  const { unlock } = useGamification();
   const [asset, setAsset] = useState<MintAsset>("wbtc");
   const [amount, setAmount] = useState("0.01");
-  const [step, setStep] = useState<"idle" | "approve" | "deposit" | "mint" | "done">("idle");
+  const [done, setDone] = useState(false);
 
-  const token = asset === "wbtc" ? CONTRACTS.tWBTC : CONTRACTS.tXRP;
   const decimals = asset === "wbtc" ? 8 : 6;
   const balance = asset === "wbtc" ? wbtc.data : xrp.data;
   const symbol = asset === "wbtc" ? "tWBTC" : "tXRP";
-
-  const { writeContract, data: hash, isPending } = useWriteContract();
-  const { isSuccess } = useWaitForTransactionReceipt({ hash });
 
   const ratio = useReadContract({
     address: CONTRACTS.CollateralVault,
@@ -32,48 +31,27 @@ export function MintLifeEUR({ onContinue }: { onContinue?: () => void }) {
     query: { enabled: !!address },
   });
 
-  const runApprove = () => {
-    setStep("approve");
-    writeContract({
-      address: token,
-      abi: erc20Abi,
-      functionName: "approve",
-      args: [CONTRACTS.CollateralVault, parseUnits(amount || "0", decimals)],
-    });
-  };
-
-  const runDeposit = () => {
-    setStep("deposit");
-    writeContract({
-      address: CONTRACTS.CollateralVault,
-      abi: collateralVaultAbi,
-      functionName: "depositCollateral",
-      args: [token, parseUnits(amount || "0", decimals)],
-    });
-  };
-
-  const runMint = () => {
+  async function runMintFlow() {
     if (!maxMintable) return;
     const half = maxMintable / 2n;
-    setStep("mint");
-    writeContract({
-      address: CONTRACTS.CollateralVault,
-      abi: collateralVaultAbi,
-      functionName: "mintLifeEur",
-      args: [half > 0n ? half : maxMintable],
-    });
-  };
+    const mintAmount = half > 0n ? half : maxMintable;
+    await depositAndMint(asset === "wbtc" ? CONTRACTS.tWBTC : CONTRACTS.tXRP, amount, decimals, formatUnits(mintAmount, 18));
+  }
 
   useEffect(() => {
-    if (isSuccess && step === "mint") setStep("done");
-  }, [isSuccess, step]);
+    if (isSuccess && !done) {
+      setDone(true);
+      unlock("first_mint");
+    }
+  }, [isSuccess, done, unlock]);
 
   return (
     <div className="flex flex-col px-5 pb-8">
-      <Badge tone="accent">Mint LIFEUR</Badge>
+      <Badge tone="accent">Mint LIFEUR · testnet</Badge>
       <h2 className="mt-3 text-[24px] font-semibold tracking-tight">Euro stablecoin</h2>
       <p className="mt-2 text-sm text-muted">
-        Deposit BTC or XRP collateral · mint LIFEUR at 150% ratio · win-win rewards for minters who join the pool.
+        Deposit testnet BTC/XRP collateral and mint LIFEUR in one batched tx
+        {isGasless ? " (gas sponsored)" : ""}.
       </p>
 
       {!isConnected ? (
@@ -114,19 +92,22 @@ export function MintLifeEUR({ onContinue }: { onContinue?: () => void }) {
             <p>Collateral ratio: {ratio.data ? `${(Number(ratio.data) / 100).toFixed(0)}%` : "—"}</p>
           </div>
 
-          <div className="mt-6 space-y-2">
-            <Button fullWidth onClick={runApprove} disabled={isPending}>
-              1. Approve {symbol}
-            </Button>
-            <Button fullWidth variant="secondary" onClick={runDeposit} disabled={isPending}>
-              2. Deposit collateral
-            </Button>
-            <Button fullWidth variant="secondary" onClick={runMint} disabled={isPending || !maxMintable}>
-              3. Mint LIFEUR
-            </Button>
-          </div>
+          <Button
+            fullWidth
+            className="mt-6"
+            onClick={() => void runMintFlow()}
+            disabled={isPending || !maxMintable}
+          >
+            {isPending ? "Minting…" : "Approve · deposit · mint (1 tx)"}
+          </Button>
 
-          {step === "done" && onContinue && (
+          {error && (
+            <p className="mt-3 text-xs text-red-400">
+              {(error as Error).message?.split("\n")[0]?.slice(0, 140)}
+            </p>
+          )}
+
+          {done && onContinue && (
             <Button fullWidth className="mt-4" size="lg" onClick={onContinue}>
               Continue onboarding
             </Button>

@@ -1,6 +1,14 @@
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import {
+  useAccount,
+  useReadContract,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+  usePublicClient,
+} from "wagmi";
 import { formatUnits, parseUnits } from "viem";
 import { CONTRACTS, collateralVaultAbi, erc20Abi, lifeEurAbi } from "../lib/contracts";
+import { contractCall } from "../lib/paymaster";
+import { useSponsoredCalls } from "./useSponsoredCalls";
 
 export { useWallet } from "./useWeb3Ready";
 
@@ -46,36 +54,65 @@ export function useMaxMintable() {
 }
 
 export function useMintLifeEur() {
-  const { writeContract, data: hash, isPending, error } = useWriteContract();
-  const { isLoading: confirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+  const { writeContractAsync, data: hash, isPending, error } = useWriteContract();
+  const { isLoading: confirming, isSuccess: writeSuccess } = useWaitForTransactionReceipt({
+    hash,
+  });
+  const publicClient = usePublicClient();
+  const sponsored = useSponsoredCalls();
 
-  const depositAndMint = async (asset: `0x${string}`, amount: string, decimals: number, mintAmount: string) => {
+  const depositAndMint = async (
+    asset: `0x${string}`,
+    amount: string,
+    decimals: number,
+    mintAmount: string,
+  ) => {
     const parsed = parseUnits(amount, decimals);
     const mintParsed = parseUnits(mintAmount, 18);
 
-    await writeContract({
-      address: asset,
-      abi: erc20Abi,
-      functionName: "approve",
-      args: [CONTRACTS.CollateralVault, parsed],
-    });
+    const calls = [
+      contractCall(asset, erc20Abi, "approve", [CONTRACTS.CollateralVault, parsed]),
+      contractCall(CONTRACTS.CollateralVault, collateralVaultAbi, "depositCollateral", [
+        asset,
+        parsed,
+      ]),
+      contractCall(CONTRACTS.CollateralVault, collateralVaultAbi, "mintLifeEur", [mintParsed]),
+    ];
 
-    await writeContract({
-      address: CONTRACTS.CollateralVault,
-      abi: collateralVaultAbi,
-      functionName: "depositCollateral",
-      args: [asset, parsed],
-    });
+    await sponsored.execute(calls, async () => {
+      const approveHash = await writeContractAsync({
+        address: asset,
+        abi: erc20Abi,
+        functionName: "approve",
+        args: [CONTRACTS.CollateralVault, parsed],
+      });
+      await publicClient!.waitForTransactionReceipt({ hash: approveHash });
 
-    await writeContract({
-      address: CONTRACTS.CollateralVault,
-      abi: collateralVaultAbi,
-      functionName: "mintLifeEur",
-      args: [mintParsed],
+      const depositHash = await writeContractAsync({
+        address: CONTRACTS.CollateralVault,
+        abi: collateralVaultAbi,
+        functionName: "depositCollateral",
+        args: [asset, parsed],
+      });
+      await publicClient!.waitForTransactionReceipt({ hash: depositHash });
+
+      const mintHash = await writeContractAsync({
+        address: CONTRACTS.CollateralVault,
+        abi: collateralVaultAbi,
+        functionName: "mintLifeEur",
+        args: [mintParsed],
+      });
+      await publicClient!.waitForTransactionReceipt({ hash: mintHash });
     });
   };
 
-  return { depositAndMint, isPending: isPending || confirming, isSuccess, error };
+  return {
+    depositAndMint,
+    isGasless: sponsored.isSupported,
+    isPending: sponsored.isPending || isPending || confirming,
+    isSuccess: sponsored.isSuccess || writeSuccess,
+    error: sponsored.error ?? error,
+  };
 }
 
 export function formatLifeEur(value: bigint | undefined) {

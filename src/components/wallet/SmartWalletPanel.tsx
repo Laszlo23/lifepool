@@ -1,5 +1,8 @@
-import { Fingerprint, Loader2, Wallet } from "lucide-react";
+import { useEffect } from "react";
+import { Fingerprint, Loader2, Sparkles, Wallet } from "lucide-react";
 import { activeChain } from "../../lib/chains";
+import { usePaymaster } from "../../hooks/usePaymaster";
+import { useGamification } from "../../hooks/useGamification";
 import { useWallet } from "../../hooks/useWeb3Ready";
 import { WALLET_OPTIONS, type WalletConnectorId } from "../../lib/wagmi";
 import { Badge } from "../ui/Badge";
@@ -11,6 +14,8 @@ interface SmartWalletPanelProps {
 }
 
 export function SmartWalletPanel({ compact, onConnected }: SmartWalletPanelProps) {
+  const { isSupported: gaslessReady } = usePaymaster();
+  const { unlock } = useGamification();
   const {
     address,
     isConnected,
@@ -23,6 +28,12 @@ export function SmartWalletPanel({ compact, onConnected }: SmartWalletPanelProps
     activeConnectorId,
     shortAddress,
   } = useWallet();
+
+  useEffect(() => {
+    if (isConnected && isReady && address) {
+      unlock("wallet_connected");
+    }
+  }, [isConnected, isReady, address, unlock]);
 
   async function pick(id: WalletConnectorId) {
     await connectWith(id);
@@ -50,10 +61,19 @@ export function SmartWalletPanel({ compact, onConnected }: SmartWalletPanelProps
               </div>
               <div className="mt-0.5 text-[10px] text-neon/80">
                 {activeChain.name} · connected
+                {gaslessReady ? " · gas sponsored" : ""}
               </div>
             </div>
           </div>
-          <Badge tone="neon">Live</Badge>
+          <div className="flex flex-col items-end gap-1.5">
+            <Badge tone="neon">Live</Badge>
+            {gaslessReady && (
+              <Badge tone="accent">
+                <Sparkles size={10} className="mr-1 inline" />
+                Gasless
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
     );

@@ -1,6 +1,5 @@
 import { BacktestLab } from "./components/backtest/BacktestLab";
 import { AppShell } from "./components/app/AppShell";
-import { GuestFlow } from "./components/app/GuestFlow";
 import { Dashboard } from "./components/dashboard/Dashboard";
 import { LiveFlow } from "./components/liveflow/LiveFlow";
 import { MarketIntel } from "./components/intelligence/MarketIntel";
@@ -25,19 +24,17 @@ function App() {
 
   if (phase === "loading") {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-void">
-        <div className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-neon/10">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-neon border-t-transparent" />
+      <div className="relative mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-void">
+        <div className="flex flex-1 items-center justify-center">
+          <div className="text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-neon/10">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-neon border-t-transparent" />
+            </div>
+            <p className="text-sm text-muted">Loading market data & engine…</p>
           </div>
-          <p className="text-sm text-muted">Loading market data & engine…</p>
         </div>
       </div>
     );
-  }
-
-  if (phase === "guest") {
-    return <GuestFlow />;
   }
 
   return <AppShell />;
