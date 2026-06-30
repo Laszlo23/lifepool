@@ -49,6 +49,7 @@ interface PoolContextValue {
   computing: boolean;
   setTab: (tab: ProductTab) => void;
   startOnboarding: () => void;
+  startCalculator: () => void;
   startFaucet: () => void;
   backToLanding: () => void;
   completeOnboarding: (payload: OnboardingPayload) => void;
@@ -234,6 +235,7 @@ export function PoolProvider({ children }: { children: ReactNode }) {
       computing,
       setTab,
       startOnboarding: () => setGuestScreen("onboarding"),
+      startCalculator: () => setGuestScreen("calculator"),
       startFaucet: () => setGuestScreen("faucet"),
       backToLanding: () => setGuestScreen("landing"),
       completeOnboarding,

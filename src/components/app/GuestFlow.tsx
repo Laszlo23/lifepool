@@ -1,11 +1,26 @@
 import { LandingHero } from "../landing/LandingHero";
 import { OnboardingFlow } from "../onboarding/OnboardingFlow";
 import { FaucetScreen } from "../faucet/FaucetScreen";
+import { GuestCalculator } from "../guest/GuestCalculator";
 import { usePool } from "../../context/PoolContext";
 
 export function GuestFlow() {
-  const { guestScreen, startOnboarding, startFaucet, backToLanding, completeOnboarding } =
-    usePool();
+  const {
+    guestScreen,
+    startOnboarding,
+    startCalculator,
+    startFaucet,
+    backToLanding,
+    completeOnboarding,
+  } = usePool();
+
+  if (guestScreen === "calculator") {
+    return (
+      <div className="mx-auto min-h-dvh w-full max-w-[430px] bg-void">
+        <GuestCalculator onBack={backToLanding} onGetStarted={startOnboarding} />
+      </div>
+    );
+  }
 
   if (guestScreen === "faucet") {
     return (
@@ -29,7 +44,11 @@ export function GuestFlow() {
 
   return (
     <div className="mx-auto min-h-dvh w-full max-w-[430px] bg-void">
-      <LandingHero onGetStarted={startOnboarding} onOpenFaucet={startFaucet} />
+      <LandingHero
+        onGetStarted={startOnboarding}
+        onOpenFaucet={startFaucet}
+        onOpenCalculator={startCalculator}
+      />
     </div>
   );
 }

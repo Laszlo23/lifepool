@@ -1,5 +1,10 @@
 import { useAccount, useConnect, useDisconnect, useSwitchChain } from "wagmi";
+import type { Connector } from "wagmi";
 import { activeChain } from "../lib/chains";
+import {
+  WALLET_CONNECTORS,
+  type WalletConnectorId,
+} from "../lib/wagmi";
 
 const baseSepoliaParams = {
   chainId: `0x${activeChain.id.toString(16)}`,
@@ -11,23 +16,49 @@ const baseSepoliaParams = {
     : undefined,
 };
 
+function pickConnector(
+  connectors: readonly Connector[],
+  id: WalletConnectorId,
+): Connector | undefined {
+  return connectors.find((c) => c.id === id);
+}
+
 export function useWallet() {
-  const { address, isConnected, chainId, status } = useAccount();
-  const { connectAsync, connectors, isPending: connecting, error: connectError } = useConnect();
+  const { address, isConnected, chainId, status, connector } = useAccount();
+  const { connectAsync, connectors, isPending: connecting, error: connectError } =
+    useConnect();
   const { disconnect } = useDisconnect();
   const { switchChainAsync, isPending: switching } = useSwitchChain();
 
   const isWrongChain = isConnected && chainId !== activeChain.id;
   const isReady = isConnected && !isWrongChain;
 
-  async function connectWallet() {
-    const connector =
-      connectors.find((c) => c.ready) ??
-      connectors.find((c) => c.id === "injected") ??
-      connectors[0];
-    if (!connector) throw new Error("No wallet found — install MetaMask or Coinbase Wallet");
+  const activeConnectorId = connector?.id as WalletConnectorId | undefined;
 
-    await connectAsync({ connector, chainId: activeChain.id });
+  async function connectWith(
+    connectorId: WalletConnectorId = WALLET_CONNECTORS.baseSmart,
+  ) {
+    const target =
+      pickConnector(connectors, connectorId) ??
+      connectors.find((c) => c.ready) ??
+      connectors[0];
+    if (!target) {
+      throw new Error("No wallet available — try Base Smart Wallet or MetaMask");
+    }
+
+    const isSmart =
+      connectorId === WALLET_CONNECTORS.baseSmart ||
+      connectorId === WALLET_CONNECTORS.coinbaseSmart;
+
+    await connectAsync({
+      connector: target,
+      chainId: activeChain.id,
+      ...(isSmart ? { instantOnboarding: true as const } : {}),
+    });
+  }
+
+  async function connectWallet() {
+    await connectWith(WALLET_CONNECTORS.baseSmart);
   }
 
   async function addNetwork() {
@@ -54,7 +85,6 @@ export function useWallet() {
     }
   }
 
-  /** Connect wallet and switch to Base Sepolia if needed. */
   async function ensureNetwork() {
     if (!isConnected) {
       await connectWallet();
@@ -65,6 +95,11 @@ export function useWallet() {
     }
   }
 
+  function shortAddress(addr?: string) {
+    if (!addr) return "";
+    return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
+  }
+
   return {
     address,
     isConnected,
@@ -72,7 +107,10 @@ export function useWallet() {
     isWrongChain,
     chainId,
     status,
+    connector,
+    activeConnectorId,
     connectWallet,
+    connectWith,
     switchNetwork,
     ensureNetwork,
     connecting: connecting || switching,
@@ -80,5 +118,6 @@ export function useWallet() {
     disconnect,
     connectors,
     activeChain,
+    shortAddress,
   };
 }

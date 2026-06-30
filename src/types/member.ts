@@ -1,6 +1,6 @@
 export type ProductTab = "dashboard" | "liveflow" | "yield" | "intel" | "treasury" | "backtest";
 
-export type GuestScreen = "landing" | "onboarding" | "faucet";
+export type GuestScreen = "landing" | "onboarding" | "faucet" | "calculator";
 
 export type PaymentMethod = "crypto" | "apple_pay" | "google_pay";
 

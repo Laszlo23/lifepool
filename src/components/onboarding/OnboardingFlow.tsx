@@ -6,6 +6,8 @@ import { CYCLE_LOCK_LABEL } from "../../engine/cycle";
 import { useWallet } from "../../hooks/useWeb3Ready";
 import { useJoinPool, useLifePoolOnchain } from "../../hooks/useLifePool";
 import { useLifeEurBalance } from "../../hooks/useLifeEUR";
+import { SmartWalletPanel } from "../wallet/SmartWalletPanel";
+import { YieldPreviewStep } from "./YieldPreviewStep";
 import { MintLifeEUR } from "../mint/MintLifeEUR";
 import { ChainGate } from "../ui/ChainGate";
 import { Badge } from "../ui/Badge";
@@ -24,9 +26,9 @@ interface OnboardingFlowProps {
   onOpenFaucet?: () => void;
 }
 
-type Step = "welcome" | "tier" | "funding" | "mint" | "wallet" | "review";
+type Step = "welcome" | "tier" | "projections" | "funding" | "mint" | "wallet" | "review";
 
-const STEPS: Step[] = ["welcome", "tier", "funding", "wallet", "mint", "review"];
+const STEPS: Step[] = ["welcome", "tier", "projections", "funding", "wallet", "mint", "review"];
 
 const TIER_IDS: Record<string, number> = {
   essential: 0,
@@ -41,7 +43,7 @@ export function OnboardingFlow({ onComplete, onBack, onOpenFaucet }: OnboardingF
   const [onchainJoined, setOnchainJoined] = useState(false);
   const [cycleStartDate, setCycleStartDate] = useState<string | undefined>();
   const [cycleEndDate, setCycleEndDate] = useState<string | undefined>();
-  const { address, isConnected, connectWallet, connecting, isReady } = useWallet();
+  const { address, isReady } = useWallet();
   const { join, isPending: joining, isSuccess: joinSuccess, error: joinError } = useJoinPool();
   const { cycleStartDate: onchainStart, cycleEndDate: onchainEnd, isMember } = useLifePoolOnchain();
   const { data: lifeEurBalance } = useLifeEurBalance();
@@ -124,6 +126,9 @@ export function OnboardingFlow({ onComplete, onBack, onOpenFaucet }: OnboardingF
         {step === "tier" && (
           <TierStep selected={selectedTier} onSelect={setSelectedTier} onNext={next} />
         )}
+        {step === "projections" && (
+          <YieldPreviewStep tierId={selectedTier} onNext={next} />
+        )}
         {step === "funding" && (
           <FundingStep
             tier={tier}
@@ -143,11 +148,7 @@ export function OnboardingFlow({ onComplete, onBack, onOpenFaucet }: OnboardingF
         )}
         {step === "wallet" && (
           <WalletStep
-            connected={isConnected}
             isReady={isReady}
-            address={address ?? ""}
-            connecting={connecting}
-            onConnect={connectWallet}
             onOpenFaucet={onOpenFaucet}
             onNext={next}
           />
@@ -173,7 +174,7 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
   return (
     <div className="flex h-full flex-col animate-slide-up">
       <div className="flex-1">
-        <Badge tone="accent">60 sec · {CYCLE_LOCK_LABEL} cycle</Badge>
+        <Badge tone="accent">Smart wallet · {CYCLE_LOCK_LABEL} cycle</Badge>
         <h2 className="mt-4 text-[28px] font-semibold leading-tight tracking-tight">
           BTC/USDC grid + BTC stake
         </h2>
@@ -253,8 +254,8 @@ function FundingStep({
             id="crypto"
             selected={selected}
             onSelect={onSelect}
-            title="Crypto wallet"
-            subtitle="LIFEUR on Base Sepolia · live now"
+            title="Smart wallet"
+            subtitle="Base Smart Wallet · passkey or email · live now"
             badge="Active"
             highlight
             icon={<CryptoIcon />}
@@ -438,19 +439,11 @@ function TierStep({
 }
 
 function WalletStep({
-  connected,
   isReady,
-  address,
-  connecting,
-  onConnect,
   onOpenFaucet,
   onNext,
 }: {
-  connected: boolean;
   isReady: boolean;
-  address: string;
-  connecting: boolean;
-  onConnect: () => void;
   onOpenFaucet?: () => void;
   onNext: () => void;
 }) {
@@ -458,32 +451,20 @@ function WalletStep({
     <div className="flex h-full flex-col animate-slide-up">
       <div className="flex-1">
         <h2 className="text-[28px] font-semibold leading-tight tracking-tight">
-          Connect wallet
+          Smart wallet
         </h2>
         <p className="mt-2 text-sm text-muted">
-          Base Sepolia testnet. Claim faucet funds first if you need LIFEUR or tUSDC.
+          Create or connect on Base Sepolia. No extension required with Base Smart Wallet.
         </p>
 
         <div className="mt-6">
-          <ChainGate />
+          <SmartWalletPanel />
         </div>
 
-        {!connected ? (
-          <div className="mt-6 space-y-3">
-            <Button fullWidth size="lg" onClick={() => void onConnect()} disabled={connecting}>
-              {connecting ? "Connecting…" : "Connect MetaMask / Coinbase"}
-            </Button>
-            {onOpenFaucet && (
-              <Button fullWidth variant="secondary" onClick={onOpenFaucet}>
-                Need testnet funds? Open faucet
-              </Button>
-            )}
-          </div>
-        ) : (
-          <div className="mt-6 rounded-2xl border border-neon/30 bg-neon/5 p-5">
-            <div className="text-xs text-muted">Connected · {isReady ? "Base Sepolia ✓" : "Wrong network"}</div>
-            <div className="mt-1 break-all font-mono text-sm text-neon">{address}</div>
-          </div>
+        {onOpenFaucet && (
+          <Button fullWidth variant="secondary" className="mt-4" onClick={onOpenFaucet}>
+            Need testnet LIFEUR? Open faucet
+          </Button>
         )}
       </div>
 
@@ -581,7 +562,7 @@ function ReviewStep({
       </div>
 
       <Button fullWidth size="lg" onClick={onConfirm} className="mt-6">
-        {onchainJoined ? "Enter dashboard" : "Skip onchain · enter dashboard"}
+        {onchainJoined ? "Enter dashboard" : "Enter dashboard · join onchain anytime"}
       </Button>
     </div>
   );

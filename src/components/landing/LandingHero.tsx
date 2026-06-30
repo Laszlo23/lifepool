@@ -6,9 +6,10 @@ import { Button } from "../ui/Button";
 interface LandingHeroProps {
   onGetStarted: () => void;
   onOpenFaucet?: () => void;
+  onOpenCalculator?: () => void;
 }
 
-export function LandingHero({ onGetStarted, onOpenFaucet }: LandingHeroProps) {
+export function LandingHero({ onGetStarted, onOpenFaucet, onOpenCalculator }: LandingHeroProps) {
   const pool = usePoolOptional();
   const poolApy = pool?.live?.poolApy?.toFixed(1) ?? "11.4";
   const members = "12,847";
@@ -49,8 +50,13 @@ export function LandingHero({ onGetStarted, onOpenFaucet }: LandingHeroProps) {
 
         <div className="mt-6 flex flex-col gap-3">
           <Button fullWidth size="lg" onClick={onGetStarted}>
-            Start in 60 seconds
+            Start with smart wallet
           </Button>
+          {onOpenCalculator && (
+            <Button fullWidth size="lg" variant="secondary" onClick={onOpenCalculator}>
+              Yield calculator
+            </Button>
+          )}
           {onOpenFaucet && (
             <Button fullWidth size="lg" variant="secondary" onClick={onOpenFaucet}>
               Claim testnet faucet

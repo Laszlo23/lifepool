@@ -7,6 +7,7 @@ import {
   Waves,
   type LucideIcon,
 } from "lucide-react";
+import { WalletChip } from "../wallet/WalletChip";
 import type { ProductTab } from "../../types/member";
 
 const TABS: {
@@ -44,6 +45,7 @@ export function AppTopNav({ active, onNavigate }: AppTopNavProps) {
             <span className="block text-[10px] text-muted">Protection network</span>
           </div>
         </button>
+        <WalletChip />
         <span className="rounded-full border border-neon/30 bg-neon/10 px-2.5 py-1 text-[10px] font-medium text-neon">
           Live
         </span>

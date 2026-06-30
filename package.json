@@ -34,6 +34,8 @@
     "test:compare": "tsx scripts/compare-opportunity.ts"
   },
   "dependencies": {
+    "@base-org/account": "^2.5.7",
+    "@coinbase/wallet-sdk": "^4.3.7",
     "@tanstack/react-query": "^5.101.2",
     "lucide-react": "^1.22.0",
     "react": "^19.2.7",

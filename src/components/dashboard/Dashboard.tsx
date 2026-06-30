@@ -8,6 +8,7 @@ import {
 import { formatLifeEur, useLifeEurBalance } from "../../hooks/useLifeEUR";
 import { useClaimRewards, useLifePoolOnchain } from "../../hooks/useLifePool";
 import { formatCurrency } from "../../data/pool";
+import { useWallet } from "../../hooks/useWeb3Ready";
 import { Badge } from "../ui/Badge";
 import { Metric } from "../ui/Metric";
 import { Button } from "../ui/Button";
@@ -15,6 +16,7 @@ import { Button } from "../ui/Button";
 export function Dashboard() {
   const { member, live, computing, error, setTab, refreshEngine, signOut, openFaucet } =
     usePool();
+  const { disconnect } = useWallet();
   const onchain = useLifePoolOnchain();
   const { data: lifeEurBalance } = useLifeEurBalance();
   const { claimRewards, isPending: claiming } = useClaimRewards();
@@ -59,7 +61,10 @@ export function Dashboard() {
             </button>
             <button
               type="button"
-              onClick={signOut}
+              onClick={() => {
+                disconnect();
+                signOut();
+              }}
               className="rounded-full border border-border bg-card px-3 py-2 text-[10px] text-muted"
             >
               Sign out
